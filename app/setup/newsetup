@@ -8,7 +8,7 @@ function newsetup() {
 
     if [[ -f .env ]]; then
         DO_SETUP_AGAIN_DEFAULT=yes
-        echo -n "Setup was already completed, are you sure you want to do it again? [yes/no, default yes]"
+        echo -n "Setup was already completed, are you sure you want to do it again? [yes/no, default yes] "
         read DO_SETUP_AGAIN
         DO_SETUP_AGAIN=${DO_SETUP_AGAIN:-$DO_SETUP_AGAIN_DEFAULT}
 

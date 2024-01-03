@@ -2,15 +2,13 @@
 
 source app/functions
 
-# Database prefix
+# Database prefix question
 
 function databasePrefix() {    
-    
-    DATABASE_PREFIX_DEFAULT=$(detectDatabaseParam 'database_prefix')
-    echo -n "What is the database prefix? [$DATABASE_PREFIX_DEFAULT]"
+
+    DATABASE_PREFIX_DEFAULT=$(detectDatabaseParam '_DB_PREFIX_')
+
+    echo -n "What is the database prefix? [$DATABASE_PREFIX_DEFAULT] "
     read DATABASE_PREFIX
     DATABASE_PREFIX=${DATABASE_PREFIX:-$DATABASE_PREFIX_DEFAULT}
-    
-    # echo "DATABASE_PREFIX=$DATABASE_PREFIX" >> .env
-    # success "Database prefix is set to $DATABASE_PREFIX"
 }

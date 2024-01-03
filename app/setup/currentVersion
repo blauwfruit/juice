@@ -16,7 +16,7 @@ function currentVersion() {
         PRESTASHOP_OLD_VERSION=""
     fi
 
-    echo -n "What is the current PrestaShop version that you're using [$PRESTASHOP_OLD_VERSION]?"
+    echo -n "What is the current PrestaShop version that you're using [$PRESTASHOP_OLD_VERSION]? "
     read PRESTASHOP_OLD_VERSION_ANSWER
     if [[ -n "$PRESTASHOP_OLD_VERSION_ANSWER" ]]; then
         PRESTASHOP_OLD_VERSION="$PRESTASHOP_OLD_VERSION_ANSWER"

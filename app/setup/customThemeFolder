@@ -6,7 +6,7 @@ source app/functions
 
 function customThemeFolder() {
 
-    echo -n "What is you're custom theme's folder name, that we need to exclude from upgrading?"
+    echo -n "What is you're custom theme's folder name, that we need to exclude from upgrading? "
     read CUSTOM_THEME
     CUSTOM_THEME_PATH="themes/$CUSTOM_THEME"
 

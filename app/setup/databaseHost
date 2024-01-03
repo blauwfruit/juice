@@ -2,15 +2,13 @@
 
 source app/functions
 
-# Database host
+# Database host question
 
 function databaseHost() {
 
-    DATABASE_HOST_DEFAULT=$(detectDatabaseParam 'database_host')
-    echo -n "What is the database host? [$DATABASE_HOST_DEFAULT]"
+    DATABASE_HOST_DEFAULT=$(detectDatabaseParam '_DB_SERVER_')
+
+    echo -n "What is the database host? [$DATABASE_HOST_DEFAULT] "
     read DATABASE_HOST
     DATABASE_HOST=${DATABASE_HOST:-$DATABASE_HOST_DEFAULT}
-    
-    # echo "DATABASE_HOST=$DATABASE_HOST" >> .env
-    # success "Database host is set to $DATABASE_HOST"
 }

@@ -5,7 +5,7 @@ source app/functions
 # Get prefered upgrade version
 
 function newVersion() {
-    echo -n "Which version of PrestaShop you want to upgrade to?"
+    echo -n "Which version of PrestaShop you want to upgrade to? "
     read PRESTASHOP_NEW_VERSION
     url="https://github.com/PrestaShop/PrestaShop/releases/tag/$PRESTASHOP_NEW_VERSION"
     http_code=$(curl -o /dev/null -s -w "%{http_code}" "$url")

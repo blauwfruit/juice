@@ -2,15 +2,13 @@
 
 source app/functions
 
-# Database user
+# Database user question
 
 function databaseUser() {
 
-    DATABASE_USER_DEFAULT=$(detectDatabaseParam 'database_user')
-    echo -n "What is the database user? [$DATABASE_USER_DEFAULT]"
+    DATABASE_USER_DEFAULT=$(detectDatabaseParam '_DB_USER_')
+
+    echo -n "What is the database user? [$DATABASE_USER_DEFAULT] "
     read DATABASE_USER
     DATABASE_USER=${DATABASE_USER:-$DATABASE_USER_DEFAULT}
-    
-    # echo "DATABASE_USER=$DATABASE_USER" >> .env
-    # success "Database user is set to $DATABASE_USER"
 }
