@@ -67,13 +67,12 @@ if [[ ! -f "${backupPath}/files/config/settings.inc.php" ]]; then
   danger "No backup found. Please create a backup first."
 fi
 
-
 # To do: Check if application is already upgraded
 
-# currentVersion=$(php -r "include '${APPLICATION_PATH}/config/settings.inc.php';echo _PS_VERSION_;")
-# if [ "$currentVersion" == "$PRESTASHOP_NEW_VERSION" ]; then
-#     danger "The application is already at version $UPGRADED_VERSION"
-#     exit 1
-# fi
+currentVersion=$(php -r "include '${APPLICATION_PATH}/config/config.inc.php';echo _PS_VERSION_;")
+if [ "$currentVersion" == "$PRESTASHOP_NEW_VERSION" ]; then
+    danger "The application is already at version $UPGRADED_VERSION"
+    exit 1
+fi
 
 success "All preliminary checks passed. Ready to proceed with the upgrade."
