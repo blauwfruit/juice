@@ -1,4 +1,5 @@
-./modules
-./img
-./downloads
-./uploads
+/var/www/juice/prestashop/modules
+/var/www/juice/prestashop/img
+/var/www/juice/prestashop/downloads
+/var/www/juice/prestashop/uploads
+/var/www/juice/prestashop/config
