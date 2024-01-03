@@ -12,6 +12,8 @@ You need to have the following installed:
 - `rsync`
 - `git` just to copy this repo, you can also download it via your browser
 
+Read below how to install these.
+
 ## Getting started
 
 Before you start, make sure you `cd` somewhere outside of your application. This tool runs standalone.
@@ -63,3 +65,9 @@ Found a bug or need an improvement, create a new issue. If you know how to fix i
 # Support
 
 Would you like help upgrading your PrestaShop, you can contact **blauwfruit** via support@blauwfruit.nl.
+
+# System requirements setup
+
+```
+apt-get update && apt-get install -y git && apt-get install -y rsync
+```
