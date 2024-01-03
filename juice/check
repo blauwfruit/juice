@@ -4,6 +4,17 @@ source .env
 source app/functions
 source app/constants
 
+rsync --help > /dev/null
+
+if [[ $? != 0 ]]; then
+  danger "rsync is not installed"
+fi
+
+sed --help > /dev/null
+
+if [[ $? != 0 ]]; then
+  danger "sed is not installed"
+fi
 
 # Check if all variables are set
 
