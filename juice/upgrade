@@ -14,16 +14,16 @@ if [ $check_status -ne 0 ]; then
   exit $check_status
 fi
 
-
 # If check is successful, continue process
 
 success "Start upgrade"
 
-
-
 if [[ $PRESTASHOP_NEW_VERSION != $(php -r "include('$src/install/install_version.php'); echo _PS_INSTALL_VERSION_;") ]]; then
   releaseZip="prestashop-${PRESTASHOP_NEW_VERSION}.zip"
-  releaseSourceUrl="https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip"
+
+  if [[ ! -f $releaseZip ]]; then
+    releaseSourceUrl="https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip"
+  fi
 
   if [ ! -f "$releaseZip" ]; then
     
@@ -50,6 +50,7 @@ if [[ $PRESTASHOP_NEW_VERSION != $(php -r "include('$src/install/install_version
   # Unzipping the inner prestashop.zip
 
   unzip -o "$src/prestashop.zip" -d "$src"
+
 fi
 
 info "Copying new release in application folder"
@@ -89,7 +90,7 @@ if [[ ! -f $APPLICATION_PATH/install/upgrade/upgrade.php ]]; then
   danger "Upgrade file not available."
 fi
 
-php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/upgrade/upgrade.php"
+php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/upgrade/upgrade.php" > $resultPath/results.xml
 
 if [[ $? == 0 ]]; then
   success "Upgrade script was called successfully, response $curlOutPut"
