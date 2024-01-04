@@ -1,22 +1,22 @@
 #!/bin/bash
 
-source config/settings
+source .env
 source app/constants
 source app/functions
 
 # Logic
 
-currentVersion=$(php -r "include '${applicationPath}/config/config.inc.php';echo _PS_VERSION_;")
+currentVersion=$(php -r "include '${APPLICATION_PATH}/config/config.inc.php';echo _PS_VERSION_;")
 
 if [[ currentVersion == '_PS_VERSION_' ]]; then
     # probably 1.7
-    currentVersion=$(php -r "echo include('${applicationPath}/app/config/parameters.php')[];")
+    currentVersion=$(php -r "echo include('${APPLICATION_PATH}/app/config/parameters.php')[];")
 fi
 
 if [[ $? == 0 && $currentVersion ]]; then
     success "Current version is $currentVersion"
 
-    if [[ $upgradedVersion == $currentVersion ]]; then
+    if [[ $PRESTASHOP_NEW_VERSION == $currentVersion ]]; then
         success "Application is updated"
     else
         warning "Application is not updated"
