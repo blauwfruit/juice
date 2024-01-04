@@ -10,9 +10,17 @@ success "Start restore process"
 
 mkdir -p $backupPath
 
-if [ $PRESTASHOP_OLD_VERSION == $PRESTASHOP_NEW_VERSION ]; then
-    warning "The backup you're trying to restore is the upgraded version $PRESTASHOP_NEW_VERSION"
-    exit 1
+if [ $(php -r "include('${APPLICATION_PATH}/config/config.inc.php');echo _PS_VERSION_;") == $PRESTASHOP_OLD_VERSION ]; then
+    warning "You are restoring a backup while your current appliation is not upgraded."
+
+    echo -n "Are you sure you want to continue? [yes/no] "
+        
+    read RESTORE_ANYWAYS
+
+    if [[ $RESTORE_ANYWAYS == 'no' ]]; then
+        info "Restoring process is cancelled.";
+        exit 1;
+    fi
 fi
 
 mysql -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD -vv $DATABASE_NAME < $backupPath/database.sql
