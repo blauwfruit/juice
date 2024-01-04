@@ -36,14 +36,19 @@ else
     exit 1
 fi
 
-# Database backup
-mysqldump -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME > $backupPath/database.sql
+if [[ -n $DATABASE_HOST && -n $DATABASE_USER && -n $DATABASE_PASSWORD && -n $DATABASE_NAME ]]; then
 
-if [[ $? == 0 ]]; then
-    success "Database backup created"
+    # Database backup
+    mysqldump -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME > $backupPath/database.sql
+
+    if [[ $? == 0 ]]; then
+        success "Database backup created"
+    else
+        warning "Database dump failed with exit code $?"
+        exit 1
+    fi
+
+    success "Backup process completed successfully."
 else
-    warning "Database dump failed with exit code $?"
-    exit 1
+    danger "Database parameters are not set."
 fi
-
-success "Backup process completed successfully."

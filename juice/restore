@@ -1,7 +1,6 @@
 #!/bin/bash
 
 source .env
-source config/settings
 source app/constants
 source app/functions
 
@@ -11,12 +10,12 @@ success "Start restore process"
 
 mkdir -p $backupPath
 
-if [ $(php -r "include '${backupPath}/files/config/settings.inc.php';echo _PS_VERSION_;") == $PRESTASHOP_NEW_VERSION ]; then
+if [ $PRESTASHOP_OLD_VERSION == $PRESTASHOP_NEW_VERSION ]; then
     warning "The backup you're trying to restore is the upgraded version $PRESTASHOP_NEW_VERSION"
     exit 1
 fi
 
-mysql -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME < $backupPath/database.sql
+mysql -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD -vv $DATABASE_NAME < $backupPath/database.sql
 
 if [[ $? == 0 ]]; then
     success "Database restored"

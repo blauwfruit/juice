@@ -5,8 +5,8 @@ source app/constants
 source app/functions
 
 # Call the check script and exit if it fails
+# bash juice/check
 
-bash juice/check
 check_status=$?
 if [ $check_status -ne 0 ]; then
   echo "Check script failed with status $check_status. Aborting upgrade."
@@ -18,33 +18,43 @@ fi
 
 success "Start upgrade"
 
-releaseZip="prestashop-${PRESTASHOP_NEW_VERSION}.zip"
-releaseSourceUrl="https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip"
 
 
-if [ ! -f "$releaseZip" ]; then
-  curl -L --write-out %{http_code} --silent --output "$releaseZip" "$releaseSourceUrl"
-  if [[ $? != 0 ]]; then
-    warning "Curl has issues, exit $?"
-    exit 1
+if [[ $PRESTASHOP_NEW_VERSION != $(php -r "include('$src/install/install_version.php'); echo _PS_INSTALL_VERSION_;") ]]; then
+  releaseZip="prestashop-${PRESTASHOP_NEW_VERSION}.zip"
+  releaseSourceUrl="https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip"
+
+  if [ ! -f "$releaseZip" ]; then
+    
+    info "Downloading PrestaShop ${PRESTASHOP_NEW_VERSION}"
+    
+    curl -L --write-out %{http_code} --silent --output "$releaseZip" "$releaseSourceUrl"
+    
+    if [[ $? != 0 ]]; then
+      danger "Curl has issues, exit $?"
+    fi
   fi
-fi
 
-if [ ! -f "$src/index.php" ]; then
-  mkdir -p "$src"
+
+  rm -rf $src
+  mkdir -p $src
+
+  info "Unzipping the new release"
   unzip -o "$releaseZip" -d "$src"
+
   if [[ $? != 0 ]]; then
-    warning "Unzip failed, exit $?"
-    exit 1
+    danger "Unzip failed, exit $?"
   fi
+
   # Unzipping the inner prestashop.zip
+
   unzip -o "$src/prestashop.zip" -d "$src"
 fi
 
-# Add custom exclude list config/exclude-list-custom.txt
-rsync -av --exclude-from="config/exclude-list.txt" --exclude-from="config/exclude-list-custom.txt" "$src"/* "$APPLICATION_PATH"
+info "Copying new release in application folder"
 
-find "$APPLICATION_PATH" -type d -exec chmod 777 {} \;
+# Add custom exclude list config/exclude-list-custom.txt
+rsync -av --exclude-from="config/exclude-list.txt" --exclude-from="config/exclude-list-custom.txt" $src/* $APPLICATION_PATH
 
 rm -f "$APPLICATION_PATH/cache/class_index.php"
 rm -rf "$APPLICATION_PATH/var/"
@@ -72,7 +82,13 @@ fi
 
 mkdir -p "$resultPath"
 
-curlOutPut=$(curl --write-out %{http_code} --silent --output "$resultPath/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
+# curlOutPut=$(curl --write-out %{http_code} --silent --output "$resultPath/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
+
+if [[ ! -f $APPLICATION_PATH/install/upgrade/upgrade.php ]]; then
+  danger "Upgrade file not available."
+fi
+
+php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/upgrade/upgrade.php"
 
 if [[ $? == 0 ]]; then
   success "Upgrade script was called successfully, response $curlOutPut"
@@ -80,7 +96,20 @@ else
   warning "Something went wrong with calling the upgrade script with curl, exit code $?"
 fi
 
+info "Removing install folder"
 rm -r "$APPLICATION_PATH/install"
+
+info "Removing var folder"
+rm -r "$APPLICATION_PATH/var"
+
+info "Creating the themes cache folder"
+mkdir -p "$APPLICATION_PATH/themes/classic/assets/cache"
+
+info "Adding the correct rights to the folders"
+find $APPLICATION_PATH -type d -exec chmod 755 {} \;
+
+info "Adding the correct rights to the files"
+find $APPLICATION_PATH -type f -exec chmod 644 {} \;
 
 if [[ $? == 0 ]]; then
   success "/install folder successfully removed"
@@ -88,27 +117,36 @@ else
   warning "/install folder could not be removed"
 fi
 
-rm -r "${APPLICATION_PATH/$BACKOFFICE_FOLDER}"
-
-if [[ $? == 0 ]]; then
-  success "/$BACKOFFICE_FOLDER folder successfully removed"
+# Remove backoffice folder
+if [ -d "$APPLICATION_PATH/$BACKOFFICE_FOLDER" ]; then
+  rm -r "$APPLICATION_PATH/$BACKOFFICE_FOLDER"
+  if [[ $? -eq 0 ]]; then
+    success "/$BACKOFFICE_FOLDER folder successfully removed"
+  else
+    warning "/$BACKOFFICE_FOLDER folder could not be removed"
+  fi
 fi
 
-rm -r "$APPLICATION_PATH/themes/default-bootstrap"
-
-if [[ $? == 0 ]]; then
-  success "/themes/default-bootstrap folder successfully removed"
+# Remove themes/default-bootstrap folder
+if [ -d "$APPLICATION_PATH/themes/default-bootstrap" ]; then
+  rm -r "$APPLICATION_PATH/themes/default-bootstrap"
+  if [[ $? -eq 0 ]]; then
+    success "/themes/default-bootstrap folder successfully removed"
+  fi
 fi
 
-mv "$APPLICATION_PATH/admin" "$APPLICATION_PATH"/"$BACKOFFICE_FOLDER"
-
-if [[ $? == 0 ]]; then
-  success "Admin folder successfully replaced"
-else
-  warning "There was an issue with creating the admin folder. Command 'mv' exit code $?"
+# Replace admin folder
+if [ -d "$APPLICATION_PATH/admin" ]; then
+  mv "$APPLICATION_PATH/admin" "$APPLICATION_PATH/$BACKOFFICE_FOLDER"
+  if [[ $? -eq 0 ]]; then
+    success "Admin folder successfully replaced"
+  else
+    warning "There was an issue with creating the admin folder. Command 'mv' exit code $?"
+    exit 1
+  fi
 fi
 
 cp "$resultPath/results.xml" "${resultPath}""/results-$(date +'%Y-%m-%d_%T').xml"
 
-success "See the front-office $SHOP_URL/"
-success "See the back-office $SHOP_URL/$BACKOFFICE_FOLDER/"
+success "See the front-office $SHOP_URL"
+success "See the back-office $SHOP_URL/$BACKOFFICE_FOLDER"
