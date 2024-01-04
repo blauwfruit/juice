@@ -148,7 +148,7 @@ if [ -d "$APPLICATION_PATH/admin" ]; then
   fi
 fi
 
-cp "$resultPath/results.xml" "${resultPath}""/results-$(date +'%Y-%m-%d_%T').xml"
+cp $resultPath/results.xml "${resultPath}/results-$(date +'%Y-%m-%d_%T').xml"
 
 success "See the front-office $SHOP_URL"
 success "See the back-office $SHOP_URL/$BACKOFFICE_FOLDER"
