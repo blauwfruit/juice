@@ -5,7 +5,8 @@ source app/constants
 source app/functions
 
 # Call the check script and exit if it fails
-# bash juice/check
+
+bash juice/check
 
 check_status=$?
 if [ $check_status -ne 0 ]; then
