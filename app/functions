@@ -29,3 +29,15 @@ function danger() {
     echo -e "$(timeStamp) ${DANGER}$1${NC}"
     exit 1
 }
+
+function isVersion() {
+    local version=$1
+    local regex="^[0-9]+(\.[0-9]+)*$"
+    if [[ $version =~ $regex ]]; then
+        echo "$version is a valid version number."
+        return 0
+    else
+        echo "$version is NOT a valid version number."
+        return 1
+    fi
+}

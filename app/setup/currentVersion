@@ -12,16 +12,20 @@ function currentVersion() {
     fi
 
     PRESTASHOP_OLD_VERSION=$(php -r "include '$APPLICATION_PATH/config/config.inc.php';echo _PS_VERSION_;")
-    if [[ $? != 0 ]]; then
-        PRESTASHOP_OLD_VERSION=""
+
+    if [[ $? != 0 || $(isVersion $PRESTASHOP_OLD_VERSION) == 0 ]]; then
+        danger "PrestaShop does not seem to be installed correctly. Could not determin the version."
     fi
 
-    echo -n "What is the current PrestaShop version that you're using [$PRESTASHOP_OLD_VERSION]? "
+    PRESTASHOP_OLD_VERSION_ANSWER_DEFAULT=yes
+    echo -n "Your current current PrestaShop version is $PRESTASHOP_OLD_VERSION. Is that correct? [yes/no, default yes] "
     read PRESTASHOP_OLD_VERSION_ANSWER
-    if [[ -n "$PRESTASHOP_OLD_VERSION_ANSWER" ]]; then
-        PRESTASHOP_OLD_VERSION="$PRESTASHOP_OLD_VERSION_ANSWER"
+    PRESTASHOP_OLD_VERSION_ANSWER=${PRESTASHOP_OLD_VERSION_ANSWER:-$PRESTASHOP_OLD_VERSION_ANSWER_DEFAULT}
+    
+    if [[ $PRESTASHOP_OLD_VERSION_ANSWER == 'yes' ]]; then
+        echo "PRESTASHOP_OLD_VERSION=$PRESTASHOP_OLD_VERSION" >> .env
+        success "PrestaShop version: '$PRESTASHOP_OLD_VERSION'"
+    else
+        danger "Cannot proceed, you version cannot be determined."
     fi
-
-    echo "PRESTASHOP_OLD_VERSION=$PRESTASHOP_OLD_VERSION" >> .env
-    success "PrestaShop version: '$PRESTASHOP_OLD_VERSION'"
 }
