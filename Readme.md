@@ -71,3 +71,7 @@ Would you like help upgrading your PrestaShop, you can contact **blauwfruit** vi
 ```
 apt-get update && apt-get install -y git && apt-get install -y rsync
 ```
+
+# Testing using Docker
+
+We've included a Docker compose file for testing the upgrade feature. With this file we can install a new PrestaShop 
