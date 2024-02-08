@@ -31,7 +31,7 @@ else
     warning "mysql import went wrong giving exit code $?"
 fi
 
-rsync -azv --exclude 'cache/cachefs' "$backupPath/files/"* $APPLICATION_PATH
+rsync -azv --exclude 'cache/cachefs' $backupPath/files/* $APPLICATION_PATH
 
 if [ $? == 0 ]; then
     success "rsync was success fully completed"
