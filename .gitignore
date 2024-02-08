@@ -7,3 +7,4 @@ results/
 # Ignore upgrade settings
 
 config/exclude-list-custom.txt
+.juice_setup
