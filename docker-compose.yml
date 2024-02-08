@@ -33,7 +33,7 @@ services:
         ports:
             - "80:80"
         volumes:
-            - /Users/zakidjaballah/PhpstormProjects/juice:/var/www/juice
+            - .:/var/www/juice
 
 networks:
     prestashop:
