@@ -94,5 +94,6 @@ docker compose exec apache /bin/bash
 3. **Go inside the juice folder**
 
 ```
+apt-get update && apt-get install -y git && apt-get install -y rsync
 cd ../juice
 ```
