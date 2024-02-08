@@ -9,7 +9,7 @@ function publicUrl() {
     echo -n "What is shop URL? [$SHOP_URL_DEFAULT] "
     read SHOP_URL
     SHOP_URL=${SHOP_URL:-$SHOP_URL_DEFAULT}
-    echo "SHOP_URL=$SHOP_URL" >> .env
+    echo "SHOP_URL=$SHOP_URL" >> .juice_setup
     http_code=$(curl -o /dev/null -s -w "%{http_code}\n" $SHOP_URL)
     # Check if the status code is outside of the 2xx and 3xx range
     if [[ $http_code -lt 200 || $http_code -ge 400 ]]; then

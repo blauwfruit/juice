@@ -15,7 +15,7 @@ function applicationPath() {
         warning "$APPLICATION_PATH is not a directory"
         applicationPath
     else
-        echo "APPLICATION_PATH=$APPLICATION_PATH" >> .env
+        echo "APPLICATION_PATH=$APPLICATION_PATH" >> .juice_setup
         success "Using PrestaShop installation path: $APPLICATION_PATH"
     fi    
 }

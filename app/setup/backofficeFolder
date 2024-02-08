@@ -10,7 +10,7 @@ function backofficeFolder() {
     echo -n "What is backoffice folder name? [$BACKOFFICE_FOLDER_DEFAULT]"
     read BACKOFFICE_FOLDER
     BACKOFFICE_FOLDER=${BACKOFFICE_FOLDER:-$BACKOFFICE_FOLDER_DEFAULT}
-    echo "BACKOFFICE_FOLDER=$BACKOFFICE_FOLDER" >> .env
+    echo "BACKOFFICE_FOLDER=$BACKOFFICE_FOLDER" >> .juice_setup
 
     if [[ -d $APPLICATION_PATH/$BACKOFFICE_FOLDER ]]; then
         success "Backoffice folder is set to $BACKOFFICE_FOLDER"

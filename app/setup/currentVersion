@@ -23,7 +23,7 @@ function currentVersion() {
     PRESTASHOP_OLD_VERSION_ANSWER=${PRESTASHOP_OLD_VERSION_ANSWER:-$PRESTASHOP_OLD_VERSION_ANSWER_DEFAULT}
     
     if [[ $PRESTASHOP_OLD_VERSION_ANSWER == 'yes' ]]; then
-        echo "PRESTASHOP_OLD_VERSION=$PRESTASHOP_OLD_VERSION" >> .env
+        echo "PRESTASHOP_OLD_VERSION=$PRESTASHOP_OLD_VERSION" >> .juice_setup
         success "PrestaShop version: '$PRESTASHOP_OLD_VERSION'"
     else
         danger "Cannot proceed, you version cannot be determined."

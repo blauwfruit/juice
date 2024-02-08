@@ -6,5 +6,4 @@ results/
 
 # Ignore upgrade settings
 
-.env
 config/exclude-list-custom.txt

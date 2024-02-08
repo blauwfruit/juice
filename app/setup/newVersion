@@ -16,6 +16,6 @@ function newVersion() {
         newVersion
     fi
 
-    echo "PRESTASHOP_NEW_VERSION=$PRESTASHOP_NEW_VERSION" >> .env
+    echo "PRESTASHOP_NEW_VERSION=$PRESTASHOP_NEW_VERSION" >> .juice_setup
     success "PrestaShop new version: '$PRESTASHOP_NEW_VERSION'"
 }
