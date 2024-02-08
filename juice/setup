@@ -28,4 +28,4 @@ backofficeFolder
 
 databaseCredentials
 
-success "You're all setup now, you can start the upgrade process. Run bash juice/upgrade."
+success "You're all setup now, you can start the backup and upgrade process. Run juice/backup then juice/upgrade"
