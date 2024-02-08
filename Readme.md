@@ -74,4 +74,25 @@ apt-get update && apt-get install -y git && apt-get install -y rsync
 
 # Testing using Docker
 
-We've included a Docker compose file for testing the upgrade feature. With this file we can install a new PrestaShop 
+We've included a Docker compose file for testing the upgrade feature. With this file we can install a new PrestaShop and test the upgrade.
+
+
+1. **Install a new PrestaShop the prefered version**
+
+```
+export PS_VERSION=1.7.7.5 && docker compose up
+```
+
+Once that is up and running;
+
+2. **Enter the container**
+
+```
+docker compose exec apache /bin/bash
+```
+
+3. **Go inside the juice folder**
+
+```
+cd ../juice
+```
