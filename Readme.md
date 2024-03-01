@@ -30,6 +30,11 @@ Juice is now installed. You are ready to run the setup:
 juice/setup
 ```
 
+If you choose custom hooks, it will install 2 blanks scripts in the root of your application:
+
+1. `blauwfruit-juice-upgrade-{$PRESTASHOP_NEW_VERSION}-hook-before` any in this file will run just before the upgrading process starts.
+2. `blauwfruit-juice-upgrade-{$PRESTASHOP_NEW_VERSION}-hook-after` any in this file will run right after the application is succesfully upgraded.
+
 Once you finished this, you can run a backup:
 
 ```
