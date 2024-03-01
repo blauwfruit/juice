@@ -3,7 +3,7 @@
 source app/functions
 source .juice_setup
 
-if [[ $CUSTOM_HOOKS == "yes" && $APPLICATION_PATH && $PRESTASHOP_NEW_VERSION ]]; then
+if [[ $APPLICATION_PATH && $PRESTASHOP_NEW_VERSION ]]; then
     
     # Create the custom hooks
     cp config/blank-custom-hook-script "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before"
@@ -20,5 +20,5 @@ if [[ $CUSTOM_HOOKS == "yes" && $APPLICATION_PATH && $PRESTASHOP_NEW_VERSION ]];
         echo $?
     fi
 else
-    info "Custom hooks ignored."
+    danger "Hooks cannot be installed, the APPLICATION_PATH or PRESTASHOP_NEW_VERSION are missing. Run juice/setup"
 fi
