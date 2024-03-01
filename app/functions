@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 # Colors
 WARNING='\033[1;33m'
