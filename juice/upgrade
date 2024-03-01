@@ -18,7 +18,17 @@ fi
 
 success "Start upgrade"
 
-
+if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before" ]]; then
+  
+  bash "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before"
+  
+  if [[ $? -eq 0 ]]; then
+    success "Upgrade Hook before executed without errors"
+  else
+    warning "Upgrade Hook before script has failed. See script " . "$APPLICATION_PATH/blauwfruit-juice-upgrade-hook-before"
+    warning "You're upgrade might still be successfully executed"
+  fi
+fi
 
 if [[ $PRESTASHOP_NEW_VERSION != $(php -r "include('$src/install/install_version.php'); echo _PS_INSTALL_VERSION_;") ]]; then
   releaseZip="prestashop-${PRESTASHOP_NEW_VERSION}.zip"
@@ -170,6 +180,18 @@ if [ -d "$APPLICATION_PATH/admin" ]; then
 fi
 
 cp "$resultPath/results.xml" "${resultPath}""/results-$(date +'%Y-%m-%d_%T').xml"
+
+if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after" ]]; then
+  
+  bash "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after"
+  
+  if [[ $? -eq 0 ]]; then
+    success "Upgrade Hook After executed without errors"
+  else
+    warning "Upgrade Hook After script has failed. See script " . "$APPLICATION_PATH/blauwfruit-juice-upgrade-hook-after"
+    warning "You're upgrade might still be successfully executed"
+  fi
+fi
 
 success "See the front-office $SHOP_URL"
 success "See the back-office $SHOP_URL$BACKOFFICE_FOLDER"
