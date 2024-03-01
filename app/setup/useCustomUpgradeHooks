@@ -12,14 +12,14 @@ function useCustomUpgradeHooks() {
     if [[ $CUSTOM_HOOKS == "yes" && $APPLICATION_PATH && $PRESTASHOP_NEW_VERSION ]]; then
         
         # Create the custom hooks
-        echo "#!bin/bash\n" > "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before"
+        echo "#!bin/bash" > "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before"
         if [[ $? -eq 0 ]]; then
             success "empty script $APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before is created."
         else
             echo $?
         fi
 
-        echo "#!bin/bash\n" > "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after"
+        echo "#!bin/bash" > "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after"
         if [[ $? -eq 0 ]]; then
             success "empty script $APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after is created."
         else
