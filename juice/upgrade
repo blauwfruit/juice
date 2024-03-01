@@ -19,7 +19,7 @@ fi
 success "Start upgrade"
 
 if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before" ]]; then
-  
+
   bash "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before"
   
   if [[ $? -eq 0 ]]; then
@@ -133,22 +133,21 @@ fi
 info "Removing install folder"
 rm -r "$APPLICATION_PATH/install"
 
-if [ -d "$APPLICATION_PATH/var" ]; then
-  rm -r "$APPLICATION_PATH/var"
-  success "var folder successfully removed"
-else
-  warning "var folder does not exist, skipping removal"
-fi
-
-
-info "Creating the themes cache folder"
-mkdir -p "$APPLICATION_PATH/themes/classic/assets/cache"
-
 if [[ $? == 0 ]]; then
   success "/install folder successfully removed"
 else
   warning "/install folder could not be removed"
 fi
+
+rm -f "$APPLICATION_PATH/cache/class_index.php"
+rm -rf "$APPLICATION_PATH/var/"
+rm -rf \
+  "$APPLICATION_PATH/cache/cachefs" \
+  "$APPLICATION_PATH/cache/smarty/compile" \
+  "$APPLICATION_PATH/cache/smarty/cache"
+
+info "Creating the themes cache folder"
+mkdir -p "$APPLICATION_PATH/themes/classic/assets/cache"
 
 # Remove backoffice folder
 if [ -d "$APPLICATION_PATH/$BACKOFFICE_FOLDER" ]; then
@@ -181,8 +180,9 @@ fi
 
 cp "$resultPath/results.xml" "${resultPath}""/results-$(date +'%Y-%m-%d_%T').xml"
 
+
 if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after" ]]; then
-  
+
   bash "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after"
   
   if [[ $? -eq 0 ]]; then
