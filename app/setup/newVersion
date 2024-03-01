@@ -12,7 +12,7 @@ function newVersion() {
     if [[ $http_code -ge 200 && $http_code -lt 300 ]]; then
         success "This version is available"
     else
-        warning "This versiion is not available, pick another version"
+        warning "This version is not available, pick another version"
         newVersion
     fi
 
