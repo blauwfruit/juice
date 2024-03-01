@@ -139,13 +139,6 @@ else
   warning "/install folder could not be removed"
 fi
 
-rm -f "$APPLICATION_PATH/cache/class_index.php"
-rm -rf "$APPLICATION_PATH/var/"
-rm -rf \
-  "$APPLICATION_PATH/cache/cachefs" \
-  "$APPLICATION_PATH/cache/smarty/compile" \
-  "$APPLICATION_PATH/cache/smarty/cache"
-
 info "Creating the themes cache folder"
 mkdir -p "$APPLICATION_PATH/themes/classic/assets/cache"
 
@@ -180,7 +173,6 @@ fi
 
 cp "$resultPath/results.xml" "${resultPath}""/results-$(date +'%Y-%m-%d_%T').xml"
 
-
 if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after" ]]; then
 
   bash "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after"
@@ -192,6 +184,13 @@ if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hoo
     warning "You're upgrade might still be successfully executed"
   fi
 fi
+
+rm -f "$APPLICATION_PATH/cache/class_index.php"
+rm -rf "$APPLICATION_PATH/var/"
+rm -rf \
+  "$APPLICATION_PATH/cache/cachefs" \
+  "$APPLICATION_PATH/cache/smarty/compile" \
+  "$APPLICATION_PATH/cache/smarty/cache"
 
 success "See the front-office $SHOP_URL"
 success "See the back-office $SHOP_URL$BACKOFFICE_FOLDER"
