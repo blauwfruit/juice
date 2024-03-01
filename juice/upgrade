@@ -5,7 +5,7 @@ source app/constants
 source app/functions
 
 # Call the check script and exit if it fails
-# bash juice/check
+bash juice/check
 
 check_status=$?
 if [ $check_status -ne 0 ]; then
@@ -87,11 +87,32 @@ mkdir -p "$resultPath"
 
 # curlOutPut=$(curl --write-out %{http_code} --silent --output "$resultPath/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
 
-if [[ ! -f $APPLICATION_PATH/install/upgrade/upgrade.php ]]; then
+if [[ ! -f $APPLICATION_PATH/install/index.php ]]; then
   danger "Upgrade file not available."
 fi
 
-php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/upgrade/upgrade.php"
+prestashop_major_version=$(echo $PRESTASHOP_NEW_VERSION | cut -d '.' -f1)
+
+# Compare versions and execute the appropriate command
+if [[ $prestashop_major_version -ge 8 ]]; then
+    # For PrestaShop 8 or above, execute index.php for installation
+    php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/index.php"
+
+    if [[ $? == 0 ]]; then
+        success "Upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION was called successfully."
+    else
+        warning "Something went wrong with the upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION, exit code $?"
+    fi
+else
+    # For PrestaShop versions below 8, use the upgrade.php script
+    php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/upgrade/upgrade.php"
+
+    if [[ $? == 0 ]]; then
+        success "Upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION was called successfully."
+    else
+        warning "Something went wrong with the upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION, exit code $?"
+    fi
+fi
 
 if [[ $? == 0 ]]; then
   success "Upgrade script was called successfully, response $curlOutPut"
@@ -102,8 +123,13 @@ fi
 info "Removing install folder"
 rm -r "$APPLICATION_PATH/install"
 
-info "Removing var folder"
-rm -r "$APPLICATION_PATH/var"
+if [ -d "$APPLICATION_PATH/var" ]; then
+  rm -r "$APPLICATION_PATH/var"
+  success "var folder successfully removed"
+else
+  warning "var folder does not exist, skipping removal"
+fi
+
 
 info "Creating the themes cache folder"
 mkdir -p "$APPLICATION_PATH/themes/classic/assets/cache"

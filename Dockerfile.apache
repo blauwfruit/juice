@@ -1,0 +1,8 @@
+# Stage 1: Base environment with PHP 7.1 for PrestaShop 1.6
+FROM prestashop/prestashop:1.6-7.1-apache as prestashop-base
+# No additional configurations needed here as we're using a specific PrestaShop image
+
+# Stage 2: Upgrade to PHP 7.4
+FROM php:7.4-apache as prestashop-upgrade
+# Copy the application from the previous stage
+COPY --from=prestashop-base /var/www/html /var/www/html
