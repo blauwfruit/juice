@@ -85,7 +85,7 @@ fi
 
 defines_inc_php="$APPLICATION_PATH/config/defines.inc.php"
 
-sed -i '' -e "s/_PS_MODE_DEV_', false/_PS_MODE_DEV_', true/g" "$defines_inc_php"
+sed -i "s/_PS_MODE_DEV_', false/_PS_MODE_DEV_', true/g" "$defines_inc_php"
 
 if [ $? == 0 ]; then
   success "Dev mode turned on"
