@@ -30,7 +30,9 @@ if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hoo
   fi
 fi
 
-if [[ $PRESTASHOP_NEW_VERSION != $(php -r "include('$src/install/install_version.php'); echo _PS_INSTALL_VERSION_;") ]]; then
+currentVersion=$(php -r "include '${APPLICATION_PATH}/config/config.inc.php';echo _PS_VERSION_;")
+
+if [[ $PRESTASHOP_NEW_VERSION != "$currentVersion" ]]; then
   releaseZip="prestashop-${PRESTASHOP_NEW_VERSION}.zip"
   releaseSourceUrl="https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip"
 
@@ -95,7 +97,7 @@ fi
 
 mkdir -p "$resultPath"
 
-# curlOutPut=$(curl --write-out %{http_code} --silent --output "$resultPath/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
+curlOutPut=$(curl --write-out %{http_code} --silent --output "$resultPath/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
 
 if [[ ! -f $APPLICATION_PATH/install/index.php ]]; then
   danger "Upgrade file not available."
