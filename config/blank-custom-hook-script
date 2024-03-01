@@ -1,0 +1,6 @@
+#!bin/bash
+
+source .juice_setup
+
+# Start you upgrade with
+# $APPLICATION_PATH/bin/console prestashop:module {action} {module_name}
