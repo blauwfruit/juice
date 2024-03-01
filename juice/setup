@@ -12,20 +12,21 @@ done < <(find app/setup)
 
 # Setup questions
 
+
 newsetup
 
 applicationPath
 
-currentVersion
-
-customThemeFolder
-
-newVersion
+databaseCredentials
 
 publicUrl
 
-backofficeFolder
+currentVersion
 
-databaseCredentials
+newVersion
+
+customThemeFolder
+
+backofficeFolder
 
 success "You're all setup now, you can start the backup and upgrade process. Run juice/backup then juice/upgrade"
