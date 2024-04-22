@@ -40,7 +40,8 @@ else
 fi
 
 rm -rf "$APPLICATION_PATH/cache/smarty/compile" \
-    "$APPLICATION_PATH/cache/class_index.php"
+    "$APPLICATION_PATH/cache/class_index.php" \
+    "$APPLICATION_PATH/var/"
 
 if [[ $? == 0 ]]; then
     success "Remove cache files completed"
