@@ -91,10 +91,10 @@ fi
 
 defines_inc_php="$APPLICATION_PATH/config/defines.inc.php"
 
-sed -i "s/_PS_MODE_DEV_', true/_PS_MODE_DEV_', false/g" "$defines_inc_php"
+sed -i "s/_PS_MODE_DEV_', false/_PS_MODE_DEV_', true/g" "$defines_inc_php"
 
 if [ $? == 0 ]; then
-  success "Dev mode turned off"
+  success "Dev mode turned on"
 else
   warning "Command 'sed' could not manipulate $defines_inc_php, exit code $?"
 fi
@@ -189,6 +189,15 @@ if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hoo
     warning "Upgrade Hook After script has failed. See script " . "$APPLICATION_PATH/blauwfruit-juice-upgrade-hook-after"
     warning "You're upgrade might still be successfully executed"
   fi
+fi
+
+if [ -f "$APPLICATION_PATH/config/defines.inc.php" ]; then
+    sed -i "s/_PS_MODE_DEV_', true/_PS_MODE_DEV_', false/g" "$defines_inc_php"
+    if [ $? == 0 ]; then
+      success "Development mode turned off"
+    else
+      warning "Failed to turn off development mode. Command 'sed' could not manipulate $defines_inc_php, exit code $?"
+    fi
 fi
 
 rm -f "$APPLICATION_PATH/cache/class_index.php"
