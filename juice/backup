@@ -10,7 +10,7 @@ dotenv
 
 success "Start backup process"
 
-currentVersion=$(php -r "include '${APPLICATION_PATH}/config/settings.inc.php';echo _PS_VERSION_;")
+currentVersion=$(php -r "include '${APPLICATION_PATH}/config/config.inc.php';echo _PS_VERSION_;")
 if [ "$currentVersion" == "$PRESTASHOP_NEW_VERSION" ]; then
     danger "You are trying to backup the already upgraded $PRESTASHOP_NEW_VERSION version"
     exit 1
