@@ -59,7 +59,9 @@ if [[ -z $DATABASE_PASSWORD ]]; then
 fi
 
 if [[ -z $DATABASE_PREFIX ]]; then
-  danger "DATABASE_PREFIX is not set."
+  info "DATABASE_PREFIX is not set. Continuing without a prefix."
+else
+  info "Using database prefix: $DATABASE_PREFIX"
 fi
 
 # Check for backup existence
