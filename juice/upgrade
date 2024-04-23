@@ -66,7 +66,11 @@ fi
 info "Copying new release in application folder"
 
 # Add custom exclude list config/exclude-list-custom.txt
-rsync -av --exclude-from="config/exclude-list.txt" --exclude-from="config/exclude-list-custom.txt" $src/* $APPLICATION_PATH
+rsync -avz \
+  --keep-dirlinks \
+  --exclude-from="config/exclude-list.txt" \
+  --exclude-from="config/exclude-list-custom.txt" \
+  $src/* $APPLICATION_PATH
 
 # Adjust ownership
 chown -R www-data:www-data /var/www/html
