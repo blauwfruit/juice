@@ -1,21 +1,37 @@
 #!/bin/bash
 
-source .juice_setup
 source app/constants
 source app/functions
 
-# Logic
-
-currentVersion=$(php -r "include '${APPLICATION_PATH}/config/config.inc.php';echo _PS_VERSION_;")
-
-if [[ currentVersion == '_PS_VERSION_' ]]; then
-    # probably 1.7
-    currentVersion=$(php -r "echo include('${APPLICATION_PATH}/app/config/parameters.php')[];")
+if [[ ! -f ".juice_setup" ]]; then
+    danger "The configuration file '.juice_setup' is missing. Please run 'juice/setup' to initialize the environment."
+    exit 1
+else
+    source .juice_setup
 fi
 
-if [[ $? == 0 && $currentVersion ]]; then
-    success "Current version is $currentVersion"
+CONFIG_FILE="${APPLICATION_PATH}/config/config.inc.php"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    danger "The configuration file '$CONFIG_FILE' does not exist. Please check your application path and configuration."
+    exit 1
+fi
 
+currentVersion=$(php -r "include '$CONFIG_FILE'; echo _PS_VERSION_;")
+
+if [[ "$currentVersion" == "_PS_VERSION_" || -z "$currentVersion" ]]; then
+    echo "Failed to retrieve the current version. Attempting alternative method..."
+
+    ALTERNATIVE_CONFIG_FILE="${APPLICATION_PATH}/app/config/parameters.php"
+    if [[ -f "$ALTERNATIVE_CONFIG_FILE" ]]; then
+        currentVersion=$(php -r "echo include '$ALTERNATIVE_CONFIG_FILE'['parameters']['version'];")
+    else
+        echo "Alternative configuration file '$ALTERNATIVE_CONFIG_FILE' does not exist."
+        exit 1
+    fi
+fi
+
+if [[ -n "$currentVersion" && "$currentVersion" != "_PS_VERSION_" ]]; then
+    success "Current version is $currentVersion"
     if [[ $PRESTASHOP_NEW_VERSION == $currentVersion ]]; then
         success "Application is updated"
     else
