@@ -5,16 +5,28 @@ source app/functions
 # Set the custom theme, so it will not be override by rsync in the upgrade process
 
 function customThemeFolder() {
+    echo -n "What is your custom theme's folder name, that we need to exclude from upgrading? "
+    read -r CUSTOM_THEME
 
-    echo -n "What is you're custom theme's folder name, that we need to exclude from upgrading? "
-    read CUSTOM_THEME
-    CUSTOM_THEME_PATH="themes/$CUSTOM_THEME"
+    if [[ -z "$CUSTOM_THEME" ]]; then
+        warning -n "You have entered an empty folder name. Do you intend to leave it empty? (yes/no): "
+        read -r response
+        response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
 
-    if [[ -d "$APPLICATION_PATH/$CUSTOM_THEME_PATH" ]]; then
-        echo "./$CUSTOM_THEME_PATH" > config/exclude-list-custom.txt
-        success "$CUSTOM_THEME_PATH is added to the exclude list"
+        if [[ "$response" != "yes" ]]; then
+            customThemeFolder
+        else
+            success "No theme folder will be excluded from upgrading."
+            return 0
+        fi
     else
-        warning "$APPLICATION_PATH/$CUSTOM_THEME_PATH does not exist"
-        customThemeFolder
+        local CUSTOM_THEME_PATH="$APPLICATION_PATH/themes/$CUSTOM_THEME"
+        if [[ -d "$CUSTOM_THEME_PATH" ]]; then
+            echo "./themes/$CUSTOM_THEME" > config/exclude-list-custom.txt
+            success "$CUSTOM_THEME_PATH is added to the exclude list"
+        else
+            warning "$CUSTOM_THEME_PATH does not exist"
+            customThemeFolder
+        fi
     fi
 }
