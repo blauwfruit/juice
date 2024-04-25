@@ -101,6 +101,8 @@ fi
 
 mkdir -p "$resultPath"
 
+info "Starting the upgrade process"
+
 curlOutPut=$(curl --write-out %{http_code} --silent --output "$resultPath/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
 
 if [[ ! -f $APPLICATION_PATH/install/index.php ]]; then
