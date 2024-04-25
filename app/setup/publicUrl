@@ -1,17 +1,17 @@
 #!/bin/bash
 
 source app/functions
+source .juice_setup
 
 function publicUrl() {
+    SHOP_URL_DEFAULT=$(mysql -h"$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME" -se "SELECT domain FROM ${DATABASE_PREFIX}shop_url WHERE id_shop_url = 1 AND main = 1 AND active = 1 LIMIT 1")
 
-    # Set shop url
-    SHOP_URL_DEFAULT='http://localhost/'
     echo -n "What is shop URL? [$SHOP_URL_DEFAULT] "
-    read SHOP_URL
+    read -r SHOP_URL
     SHOP_URL=${SHOP_URL:-$SHOP_URL_DEFAULT}
     echo "SHOP_URL=$SHOP_URL" >> .juice_setup
-    http_code=$(curl -o /dev/null -s -w "%{http_code}\n" $SHOP_URL)
-    # Check if the status code is outside of the 2xx and 3xx range
+
+    http_code=$(curl -o /dev/null -s -w "%{http_code}\n" "$SHOP_URL")
     if [[ $http_code -lt 200 || $http_code -ge 400 ]]; then
         warning "The URL provides a response code is outside of the 2xx and 3xx range: $http_code"
         publicUrl
@@ -19,3 +19,4 @@ function publicUrl() {
         success "The URL provides a response code is within the 2xx or 3xx range: $http_code"
     fi
 }
+
