@@ -7,7 +7,7 @@ source app/functions
 function backofficeFolder() {
     
     BACKOFFICE_FOLDER_DEFAULT='admin-dev'
-    echo -n "What is backoffice folder name? [$BACKOFFICE_FOLDER_DEFAULT]"
+    echo -n "What is backoffice folder name? [$BACKOFFICE_FOLDER_DEFAULT] "
     read BACKOFFICE_FOLDER
     BACKOFFICE_FOLDER=${BACKOFFICE_FOLDER:-$BACKOFFICE_FOLDER_DEFAULT}
     echo "BACKOFFICE_FOLDER=$BACKOFFICE_FOLDER" >> .juice_setup
