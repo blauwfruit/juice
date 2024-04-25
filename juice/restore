@@ -23,7 +23,7 @@ if [ $(php -r "include('${APPLICATION_PATH}/config/config.inc.php');echo _PS_VER
     fi
 fi
 
-mysql -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD -vv $DATABASE_NAME < $backupPath/database.sql
+mysql -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME < $backupPath/database.sql
 
 if [[ $? == 0 ]]; then
     success "Database restored"

@@ -68,7 +68,6 @@ info "Copying new release in application folder"
 # Add custom exclude list config/exclude-list-custom.txt
 rsync -avz \
   --keep-dirlinks \
-  --exclude-from="config/exclude-list.txt" \
   --exclude-from="config/exclude-list-custom.txt" \
   $src/* $APPLICATION_PATH
 
