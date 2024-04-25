@@ -15,14 +15,13 @@ You need to have the following installed:
 Read below how to install these.
 
 ## Recommended Database Maintenance Before Upgrade
-
-Before running an upgrade, it is recommended to clean specific database tables to speed up the process of backup and restoring. Truncating large tables prevents the creation of bloated backups, which can significantly reduce downtime during restoration. Consider truncating the ps_connections, ps_connections_source, ps_guest, and ps_log tables to enhance performance. Here’s how to perform this maintenance:
+Before running an upgrade, truncating large tables prevents the creation of bloated backups, which can significantly reduce downtime during restoration. Consider truncating the ps_connections, ps_connections_source, ps_guest, and ps_log tables to enhance performance. Here’s how to perform this maintenance:
 
 ```bash
-echo "TRUNCATE TABLE ps_connections; TRUNCATE TABLE ps_connections_source; TRUNCATE TABLE ps_guest; TRUNCATE TABLE ps_log;" | mysql -u your_username -p your_database_name
+juice/purge
 ```
-Replace your_username and your_database_name with the appropriate database credentials. This action ensures that your backup is optimized for quicker restoration.
 
+Adjust `purge.sh` if you wish to include additional tables.
 ## Getting started
 
 Before you start, make sure you `cd` somewhere outside your application. This tool runs standalone.
