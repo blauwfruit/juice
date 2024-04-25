@@ -14,9 +14,24 @@ You need to have the following installed:
 
 Read below how to install these.
 
+## Recommended Database Maintenance Before Upgrade
+
+Before running an upgrade, it is recommended to clean specific database tables to ensure the upgrade process is efficient and minimizes potential issues. Specifically, consider truncating the `ps_connections` and `ps_log` tables, which can grow large and affect performance. Here’s how you can clean these tables:
+
+```bash
+# Enter the database command line
+mysql -u your_username -p your_database_name
+
+# Truncate tables
+TRUNCATE TABLE ps_connections;
+TRUNCATE TABLE ps_log;
+
+# Exit the database command line
+exit
+```
 ## Getting started
 
-Before you start, make sure you `cd` somewhere outside of your application. This tool runs standalone.
+Before you start, make sure you `cd` somewhere outside your application. This tool runs standalone.
 
 ```
 mkdir juice && cd $_
@@ -53,9 +68,9 @@ juice/install-hooks
 This will place these files:
 
 1. `blauwfruit-juice-upgrade-{$PRESTASHOP_NEW_VERSION}-hook-before` any in this file will run just before the upgrading process starts.
-2. `blauwfruit-juice-upgrade-{$PRESTASHOP_NEW_VERSION}-hook-after` any in this file will run right after the application is succesfully upgraded.
+2. `blauwfruit-juice-upgrade-{$PRESTASHOP_NEW_VERSION}-hook-after` any in this file will run right after the application is successfully upgraded.
 
-Hopefully you upgrade succesfully!
+Hopefully you upgrade successfully!
 
 ## Brief summary of what happens
 
@@ -90,7 +105,7 @@ apt-get update && apt-get install -y git && apt-get install -y rsync
 We've included a Docker compose file for testing the upgrade feature. With this file we can install a new PrestaShop and test the upgrade.
 
 
-1. **Install a new PrestaShop the prefered version**
+1. **Install a new PrestaShop the preferred version**
 
 ```
 export PS_VERSION=1.7.7.5 && docker compose up
