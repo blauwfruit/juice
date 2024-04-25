@@ -21,7 +21,7 @@ Before running an upgrade, truncating large tables prevents the creation of bloa
 juice/purge
 ```
 
-Adjust `purge.sh` if you wish to include additional tables.
+Adjust `purge` if you wish to include additional tables.
 ## Getting started
 
 Before you start, make sure you `cd` somewhere outside your application. This tool runs standalone.
