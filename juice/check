@@ -60,8 +60,6 @@ fi
 
 if [[ -z $DATABASE_PREFIX ]]; then
   info "DATABASE_PREFIX is not set. Continuing without a prefix."
-else
-  info "Using database prefix: $DATABASE_PREFIX"
 fi
 
 # Check for backup existence
