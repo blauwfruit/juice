@@ -32,95 +32,118 @@ fi
 
 currentVersion=$(php -r "include '${APPLICATION_PATH}/config/config.inc.php';echo _PS_VERSION_;")
 
-if [[ $PRESTASHOP_NEW_VERSION != "$currentVersion" ]]; then
-  releaseZip="prestashop-${PRESTASHOP_NEW_VERSION}.zip"
-  releaseSourceUrl="https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip"
-
-  if [ ! -f "$releaseZip" ]; then
-
-    info "Downloading PrestaShop ${PRESTASHOP_NEW_VERSION}"
-
-    curl -L --write-out %{http_code} --silent --output "$releaseZip" "$releaseSourceUrl"
-
-    if [[ $? != 0 ]]; then
-      danger "Curl has issues, exit $?"
-    fi
-  fi
-
-
-  rm -rf $src
-  mkdir -p $src
-
-  info "Unzipping the new release"
-  unzip -o "$releaseZip" -d "$src"
-
-  if [[ $? != 0 ]]; then
-    danger "Unzip failed, exit $?"
-  fi
-
-  # Unzipping the inner prestashop.zip
-
-  unzip -o "$src/prestashop.zip" -d "$src"
-fi
-
-info "Copying new release in application folder"
-
-# Add custom exclude list config/exclude-list-custom.txt
-rsync -avz \
-  --keep-dirlinks \
-  --exclude-from="config/exclude-list-custom.txt" \
-  $src/* $APPLICATION_PATH
-
-# Adjust ownership
-chown -R www-data:www-data "$APPLICATION_PATH"
-
-rm -f "$APPLICATION_PATH/cache/class_index.php"
-rm -rf "$APPLICATION_PATH/var/"
-rm -rf \
-  "$APPLICATION_PATH/cache/cachefs" \
-  "$APPLICATION_PATH/cache/smarty/compile" \
-  "$APPLICATION_PATH/cache/smarty/cache"
-
-if [ -f "$APPLICATION_PATH/config/defines.inc.php" ]; then
-  success "defines.inc.php exists"
-else
-  warning "$APPLICATION_PATH/config/defines.inc.php does not exist"
-  exit 1
-fi
-
-defines_inc_php="$APPLICATION_PATH/config/defines.inc.php"
-
-sed -i "s/_PS_MODE_DEV_', false/_PS_MODE_DEV_', true/g" "$defines_inc_php"
-
-if [ $? == 0 ]; then
-  success "Dev mode turned on"
-else
-  warning "Command 'sed' could not manipulate $defines_inc_php, exit code $?"
-fi
-
-mkdir -p "$resultPath"
-
-info "Starting the upgrade process"
-
-curlOutPut=$(curl --write-out %{http_code} --silent --output "$resultPath/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
-
-if [[ ! -f $APPLICATION_PATH/install/index.php ]]; then
-  danger "Upgrade file not available."
-fi
-
 prestashop_major_version=$(echo $PRESTASHOP_NEW_VERSION | cut -d '.' -f1)
 
-# Compare versions and execute the appropriate command
-if [[ $prestashop_major_version -ge 8 ]]; then
-    # For PrestaShop 8 or above, execute index.php for installation
-    php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/index.php"
 
-    if [[ $? == 0 ]]; then
-        success "Upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION was called successfully."
-    else
-        warning "Something went wrong with the upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION, exit code $?"
-    fi
+info $prestashop_major_version
+if [[ $prestashop_major_version -ge 8 ]]; then
+
+  info "Downloading autoupgrade"
+
+  php ${APPLICATION_PATH}/bin/console prestashop:module uninstall autoupgrade
+
+  curl -L https://github.com/PrestaShop/autoupgrade/releases/download/v6.0.0/autoupgrade-v6.0.0.zip -o ${APPLICATION_PATH}/modules/autoupgrade.zip 
+  rm -r ${APPLICATION_PATH}/modules/autoupgrade.zip
+  unzip ${APPLICATION_PATH}/modules/autoupgrade.zip
+
+  php ${APPLICATION_PATH}/bin/console prestashop:module install autoupgrade
+  rm -r ${APPLICATION_PATH}/var
+
+  echo "{\"channel\":\"archive\",\"archive_prestashop\":\"prestashop.zip\",\"archive_num\":\"8.1.7\", \"archive_xml\":\"prestashop.xml\", \"PS_AUTOUP_CHANGE_DEFAULT_THEME\":0, \"skip_backup\": 1}" > {A}modules/autoupgrade/config.json
+
+  PS_AUTOUP_BACKUP false
+  PS_AUTOUP_KEEP_IMAGES false
+  PS_AUTOUP_PERFORMANCE 2
+  PS_AUTOUP_CUSTOM_MOD_DESACT false
+  PS_DISABLE_OVERRIDES false
+  PS_AUTOUP_UPDATE_DEFAULT_THEME false
+  PS_AUTOUP_CHANGE_DEFAULT_THEME false
+  PS_AUTOUP_UPDATE_RTL_FILES true
+  PS_AUTOUP_KEEP_MAILS true
+
+  danger "Stopping for debugging purposes"
+
 else
+
+  
+
+  if [[ $PRESTASHOP_NEW_VERSION != "$currentVersion" ]]; then
+    releaseZip="prestashop-${PRESTASHOP_NEW_VERSION}.zip"
+    releaseSourceUrl="https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip"
+
+    if [ ! -f "$releaseZip" ]; then
+
+      info "Downloading PrestaShop ${PRESTASHOP_NEW_VERSION}"
+
+      curl -L --write-out %{http_code} --silent --output "$releaseZip" "$releaseSourceUrl"
+
+      if [[ $? != 0 ]]; then
+        danger "Curl has issues, exit $?"
+      fi
+    fi
+
+
+    rm -rf $src
+    mkdir -p $src
+
+    info "Unzipping the new release"
+    unzip -o "$releaseZip" -d "$src"
+
+    if [[ $? != 0 ]]; then
+      danger "Unzip failed, exit $?"
+    fi
+
+    # Unzipping the inner prestashop.zip
+
+    unzip -o "$src/prestashop.zip" -d "$src"
+  fi
+
+  info "Copying new release in application folder"
+
+  # Add custom exclude list config/exclude-list-custom.txt
+  rsync -avz \
+    --keep-dirlinks \
+    --exclude-from="config/exclude-list-custom.txt" \
+    $src/* $APPLICATION_PATH
+
+  # Adjust ownership
+  chown -R www-data:www-data "$APPLICATION_PATH"
+
+  rm -f "$APPLICATION_PATH/cache/class_index.php"
+  rm -rf "$APPLICATION_PATH/var/"
+  rm -rf \
+    "$APPLICATION_PATH/cache/cachefs" \
+    "$APPLICATION_PATH/cache/smarty/compile" \
+    "$APPLICATION_PATH/cache/smarty/cache"
+
+  if [ -f "$APPLICATION_PATH/config/defines.inc.php" ]; then
+    success "defines.inc.php exists"
+  else
+    warning "$APPLICATION_PATH/config/defines.inc.php does not exist"
+    exit 1
+  fi
+
+  defines_inc_php="$APPLICATION_PATH/config/defines.inc.php"
+
+  sed -i "s/_PS_MODE_DEV_', false/_PS_MODE_DEV_', true/g" "$defines_inc_php"
+
+  if [ $? == 0 ]; then
+    success "Dev mode turned on"
+  else
+    warning "Command 'sed' could not manipulate $defines_inc_php, exit code $?"
+  fi
+
+  mkdir -p "$resultPath"
+
+  info "Starting the upgrade process"
+
+  curlOutPut=$(curl --write-out %{http_code} --silent --output "$resultPath/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
+
+  if [[ ! -f $APPLICATION_PATH/install/index.php ]]; then
+    danger "Upgrade file not available."
+  fi
+
+
     # For PrestaShop versions below 8, use the upgrade.php script
     php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/upgrade/upgrade.php"
 
