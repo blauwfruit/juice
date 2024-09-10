@@ -39,7 +39,7 @@ fi
 if [[ -n $DATABASE_HOST && -n $DATABASE_USER && -n $DATABASE_PASSWORD && -n $DATABASE_NAME ]]; then
 
     # Database backup
-    mysqldump -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME > $backupPath/database.sql
+    mysqldump -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME --single-transaction > $backupPath/database.sql
 
     if [[ $? == 0 ]]; then
         success "Database backup created"

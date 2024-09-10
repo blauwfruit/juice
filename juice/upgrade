@@ -21,7 +21,7 @@ success "Start upgrade"
 if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before" ]]; then
 
   bash "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before"
-  
+
   if [[ $? -eq 0 ]]; then
     success "Upgrade Hook before executed without errors"
   else
@@ -111,25 +111,21 @@ fi
 prestashop_major_version=$(echo $PRESTASHOP_NEW_VERSION | cut -d '.' -f1)
 
 # Compare versions and execute the appropriate command
-if [[ $prestashop_major_version -ge 8 ]]; then
     # For PrestaShop 8 or above, execute index.php for installation
-    php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/index.php"
+    php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/index_cli.php" --domain="$SHOP_URL" --db_server=mysql --db_password=password --theme=warehouse --fixtures=0
+    php_exit_code=$?
 
-    if [[ $? == 0 ]]; then
-        success "Upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION was called successfully."
+    # Check the PHP exit code
+    if [[ $php_exit_code == 0 ]]; then
+        # Check if there were any errors in the error log
+        if grep -q "ERROR" "$resultPath/error.log"; then
+            warning "Something went wrong with the upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION, check the error log."
+        else
+            success "Upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION was called successfully."
+        fi
     else
-        warning "Something went wrong with the upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION, exit code $?"
+        warning "Something went wrong with the upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION, exit code $php_exit_code."
     fi
-else
-    # For PrestaShop versions below 8, use the upgrade.php script
-    php -d log_errors=On -d error_log="$resultPath/error.log" "$APPLICATION_PATH/install/upgrade/upgrade.php"
-
-    if [[ $? == 0 ]]; then
-        success "Upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION was called successfully."
-    else
-        warning "Something went wrong with the upgrade script for PrestaShop $PRESTASHOP_NEW_VERSION, exit code $?"
-    fi
-fi
 
 if [[ $? == 0 ]]; then
   success "Upgrade script was called successfully, response $curlOutPut"
@@ -137,14 +133,14 @@ else
   warning "Something went wrong with calling the upgrade script with curl, exit code $?"
 fi
 
-info "Removing install folder"
-rm -r "$APPLICATION_PATH/install"
-
-if [[ $? == 0 ]]; then
-  success "/install folder successfully removed"
-else
-  warning "/install folder could not be removed"
-fi
+#info "Removing install folder"
+#rm -r "$APPLICATION_PATH/install"
+#
+#if [[ $? == 0 ]]; then
+#  success "/install folder successfully removed"
+#else
+#  warning "/install folder could not be removed"
+#fi
 
 info "Creating the themes cache folder"
 mkdir -p "$APPLICATION_PATH/themes/classic/assets/cache"
@@ -167,23 +163,23 @@ if [ -d "$APPLICATION_PATH/themes/default-bootstrap" ]; then
   fi
 fi
 
-# Replace admin folder
-if [ -d "$APPLICATION_PATH/admin" ]; then
-  mv "$APPLICATION_PATH/admin" "$APPLICATION_PATH/$BACKOFFICE_FOLDER"
-  if [[ $? -eq 0 ]]; then
-    success "Admin folder successfully replaced"
-  else
-    warning "There was an issue with creating the admin folder. Command 'mv' exit code $?"
-    exit 1
-  fi
-fi
+## Replace admin folder
+#if [ -d "$APPLICATION_PATH/admin" ]; then
+#  mv "$APPLICATION_PATH/admin" "$APPLICATION_PATH/$BACKOFFICE_FOLDER"
+#  if [[ $? -eq 0 ]]; then
+#    success "Admin folder successfully replaced"
+#  else
+#    warning "There was an issue with creating the admin folder. Command 'mv' exit code $?"
+#    exit 1
+#  fi
+#fi
 
 cp "$resultPath/results.xml" "${resultPath}""/results-$(date +'%Y-%m-%d_%T').xml"
 
 if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after" ]]; then
 
   bash "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-after"
-  
+
   if [[ $? -eq 0 ]]; then
     success "Upgrade Hook After executed without errors"
   else
@@ -202,11 +198,11 @@ if [ -f "$APPLICATION_PATH/config/defines.inc.php" ]; then
 fi
 
 rm -f "$APPLICATION_PATH/cache/class_index.php"
-rm -rf "$APPLICATION_PATH/var/"
+#rm -rf "$APPLICATION_PATH/var/"
 rm -rf \
   "$APPLICATION_PATH/cache/cachefs" \
   "$APPLICATION_PATH/cache/smarty/compile" \
   "$APPLICATION_PATH/cache/smarty/cache"
 
 success "See the front-office $SHOP_URL"
-success "See the back-office $SHOP_URL$BACKOFFICE_FOLDER"
+success "See the back-office $SHOP_URL/$BACKOFFICE_FOLDER"

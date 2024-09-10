@@ -10,7 +10,7 @@ success "Start restore process"
 
 mkdir -p $backupPath
 
-if [ $(php -r "include('${APPLICATION_PATH}/config/config.inc.php');echo _PS_VERSION_;") == $PRESTASHOP_OLD_VERSION ]; then
+if [ "$(php -r "include('${APPLICATION_PATH}/config/config.inc.php');echo _PS_VERSION_;")" == $PRESTASHOP_OLD_VERSION ]; then
     warning "You are restoring a backup while your current appliation is not upgraded."
 
     echo -n "Are you sure you want to continue? [yes/no] "
