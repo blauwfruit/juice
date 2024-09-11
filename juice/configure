@@ -1,0 +1,30 @@
+#!/bin/bash
+
+source app/functions
+
+source .juice_setup
+
+info "Setting configuration $1=$2"
+
+
+# SQL statement to truncate specified tables
+SQL="INSERT INTO ${DATABASE_PREFIX}configuration (name, value, date_add, date_upd) VALUES ('$1', '$2', NOW(), NOW()) ON DUPLICATE KEY UPDATE value='$2'"
+
+# Execute the SQL statement
+echo $SQL | mysql -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME
+
+
+
+# # SQL statement to truncate specified tables
+# SQL="UPDATE ${DATABASE_PREFIX}configuration SET value='$2' WHERE name = '$1'"
+
+# # Execute the SQL statement
+# echo $SQL | mysql -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME
+
+# Check if the MySQL command was successful
+if [[ $? == 0 ]]; then
+    success "Configuration $1 is set to $2"
+else
+    danger "Could not configure $1 to $2"
+    exit 1
+fi
