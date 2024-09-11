@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Install necessary packages (rsync, git) if not installed
+if ! command -v rsync &> /dev/null; then
+  echo "rsync is not installed, installing..."
+  apt-get update && apt-get install -y git rsync
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to install rsync. Exiting."
+    exit 1
+  fi
+else
+  echo "rsync is already installed."
+fi
+
 source .juice_setup
 source app/constants
 source app/functions
@@ -203,19 +215,18 @@ fi
 #      PS_AUTOUP_UPDATE_RTL_FILES true
 #      PS_AUTOUP_KEEP_MAILS true
 
-      chmod -R 755 "${APPLICATION_PATH}/modules/"
       chown -R www-data:www-data "${APPLICATION_PATH}/modules/"
+      chmod -R 755 "${APPLICATION_PATH}/modules/"
 
       # Apply the config file
       php "${APPLICATION_PATH}"/modules/autoupgrade/cli-updateconfig.php --from="${APPLICATION_PATH}/modules/autoupgrade/config.json" --dir="${BACKOFFICE_FOLDER}"
 
       php "${APPLICATION_PATH}"/modules/autoupgrade/cli-upgrade.php --dir="${BACKOFFICE_FOLDER}"
 
-      chown -R www-data:www-data "${APPLICATION_PATH}/var/cache"
-      chmod -R 755 "${APPLICATION_PATH}/var/cache"
+      chown -R www-data:www-data "${APPLICATION_PATH}/"
+      chmod -R 755 "${APPLICATION_PATH}/"
 
   fi
-
 
 if [[ -f "${APPLICATION_PATH}/blauwfruit-juice-upgrade-${PRESTASHOP_NEW_VERSION}-hook-after" ]]; then
 

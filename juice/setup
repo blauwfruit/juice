@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Install necessary packages (rsync, git) if not installed
+if ! command -v rsync &> /dev/null; then
+  echo "rsync is not installed, installing..."
+  apt-get update && apt-get install -y git rsync
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to install rsync. Exiting."
+    exit 1
+  fi
+else
+  echo "rsync is already installed."
+fi
+
 source app/functions
 
 # Include all the questions
