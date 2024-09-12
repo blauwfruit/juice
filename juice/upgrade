@@ -184,9 +184,13 @@ fi
   elif [[ "$prestashop_major_version" -ge 8 ]]; then
       info "Running custom steps for PrestaShop 8+"
 
-      # Uninstall current Autoupgrade if it's installed
-      php "${APPLICATION_PATH}/bin/console" prestashop:module uninstall autoupgrade
-      rm -rf "${APPLICATION_PATH}/modules/autoupgrade"
+      stat ${APPLICATION_PATH}/modules/autoupgrade
+
+      if [[ $? == 0 ]]; then
+        # Uninstall current Autoupgrade if it's installed
+        php ${APPLICATION_PATH}/bin/console prestashop:module uninstall autoupgrade
+        rm -rf "${APPLICATION_PATH}/modules/autoupgrade"
+      fi
 
       # Download and install new Autoupgrade
       curl -L https://github.com/PrestaShop/autoupgrade/releases/download/v6.0.0/autoupgrade-v6.0.0.zip -o ${APPLICATION_PATH}/modules/autoupgrade.zip
