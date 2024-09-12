@@ -67,9 +67,17 @@ Hopefully you upgrade successfully!
 
 ## Brief summary of what happens
 
+### < 8.x
+
 1. The code base will be replaced by the newer version 
 2. The upgrade script of PrestaShop is called `upgrade.php`
 3. Store the upgrade results inside `/results` so you can analyse what needs improvement
+
+### >= 8.x
+
+1. The autoupgrade module will be downloaded and installed
+2. The upgrade settings are loaded
+3. The upgrade cli will be called
 
 ### Restore
 
@@ -78,10 +86,6 @@ If not, we can restore your old PrestaShop version:
 ```
 juice/restore
 ```
-
-# Contribute
-
-Found a bug or need an improvement, create a new issue. If you know how to fix it, please make a PR.
 
 # Support
 
@@ -93,9 +97,10 @@ Would you like help upgrading your PrestaShop, you can contact **blauwfruit** vi
 apt-get update && apt-get install -y git && apt-get install -y rsync
 ```
 
-# Testing using Docker
+# Test using Docker
 
 We've included a Docker compose file for testing the upgrade feature. With this file we can install a new PrestaShop and test the upgrade.
+
 
 
 1. **Install a new PrestaShop the preferred version**
@@ -112,8 +117,34 @@ Once that is up and running;
 docker compose exec apache /bin/bash
 ```
 
+3. **Install system requirements**
+
+```
+apt-get update && apt-get install -y git && apt-get install -y rsync
+```
+
 4. **Go inside the juice folder**
 
 ```
 cd ../juice
 ```
+
+# Contribute
+
+Found a bug or need an improvement, create a new issue. If you know how to fix it, please make a PR.
+
+We recommend using Docker with the Docker Compose manifest from this repo.
+
+## Troubleshooting 
+
+### Dev mode
+
+By default debugging mode is turned of/not set, see the manifest:
+
+`# PS_DEV_MODE: true`
+
+You might want to set this at some point during development, but turning this to true might fail the upgrade while the upgrade itself is just fine.
+
+### ps_mbo the PrestaShop marketplace module
+
+The module ps_mbo should be callable by external servers, that is not the case in the Docker environment. Keep that in mind.
