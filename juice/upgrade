@@ -184,23 +184,22 @@ fi
   elif [[ "$prestashop_major_version" -ge 8 ]]; then
       info "Running custom steps for PrestaShop 8+"
 
-      stat ${APPLICATION_PATH}/modules/autoupgrade
+      # Check if autoupgrade module already exists
+          if [ -d "${APPLICATION_PATH}/modules/autoupgrade" ]; then
+              info "Autoupgrade module already exists, skipping download."
+          else
+              info "Autoupgrade module does not exist, downloading and installing."
 
-      if [[ $? == 0 ]]; then
-        # Uninstall current Autoupgrade if it's installed
-        php ${APPLICATION_PATH}/bin/console prestashop:module uninstall autoupgrade
-        rm -rf "${APPLICATION_PATH}/modules/autoupgrade"
-      fi
+              # Download and install new Autoupgrade
+              curl -L https://github.com/PrestaShop/autoupgrade/releases/download/v6.0.0/autoupgrade-v6.0.0.zip -o ${APPLICATION_PATH}/modules/autoupgrade.zip
+              unzip -o "${APPLICATION_PATH}/modules/autoupgrade.zip" -d "${APPLICATION_PATH}/modules/"
 
-      # Download and install new Autoupgrade
-      curl -L https://github.com/PrestaShop/autoupgrade/releases/download/v6.0.0/autoupgrade-v6.0.0.zip -o ${APPLICATION_PATH}/modules/autoupgrade.zip
-        unzip -o "${APPLICATION_PATH}/modules/autoupgrade.zip" -d "${APPLICATION_PATH}/modules/"
+              # Install the Autoupgrade module
+              php "${APPLICATION_PATH}/bin/console" prestashop:module install autoupgrade
 
-      # Install the Autoupgrade module
-      php "${APPLICATION_PATH}/bin/console" prestashop:module install autoupgrade
-
-      # Create autoupgrade download directory in admin folder
-      mkdir -p "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download"
+              # Create autoupgrade download directory in admin folder
+              mkdir -p "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download"
+          fi
 
       # Download the PrestaShop zip and XML files to the download directory
       curl -L https://github.com/PrestaShop/PrestaShop/releases/download/"$PRESTASHOP_NEW_VERSION"/prestashop_"$PRESTASHOP_NEW_VERSION".zip -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/prestashop.zip"
