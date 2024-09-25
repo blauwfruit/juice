@@ -8,7 +8,7 @@ source app/functions
 
 success "Start restore process"
 
-mkdir -p $backupPath
+mkdir -p $BACKUP_PATH
 
 if [ $(php -r "include('${APPLICATION_PATH}/config/config.inc.php');echo _PS_VERSION_;") == $PRESTASHOP_OLD_VERSION ]; then
     warning "You are restoring a backup while your current appliation is not upgraded."
@@ -23,7 +23,7 @@ if [ $(php -r "include('${APPLICATION_PATH}/config/config.inc.php');echo _PS_VER
     fi
 fi
 
-mysql -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME < $backupPath/database.sql
+mysql -h"$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME" < "$BACKUP_PATH/database.sql"
 
 if [[ $? == 0 ]]; then
     success "Database restored"
@@ -31,7 +31,11 @@ else
     warning "mysql import went wrong giving exit code $?"
 fi
 
-rsync -azv --exclude 'cache/cachefs' $backupPath/files/* $APPLICATION_PATH
+rsync -alv --delete \
+    --exclude '/img' \
+    --exclude '/download' \
+    --exclude '/upload' \
+    $BACKUP_PATH/files/ $APPLICATION_PATH
 
 if [ $? == 0 ]; then
     success "rsync was success fully completed"
@@ -42,6 +46,11 @@ fi
 rm -rf "$APPLICATION_PATH/cache/smarty/compile" \
     "$APPLICATION_PATH/cache/class_index.php" \
     "$APPLICATION_PATH/var/"
+
+rm -rf "$APPLICATION_PATH/cache/smarty/compile" \
+       "$APPLICATION_PATH/cache/cachefs" \
+       "$APPLICATION_PATH/cache/class_index.php" \
+       "$APPLICATION_PATH/var/cache/"
 
 if [[ $? == 0 ]]; then
     success "Remove cache files completed"

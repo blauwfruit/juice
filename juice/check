@@ -63,7 +63,7 @@ if [[ -z $DATABASE_PREFIX ]]; then
 fi
 
 # Check for backup existence
-if [[ ! -f "${backupPath}/files/config/settings.inc.php" ]]; then
+if [[ ! -f "${BACKUP_PATH}/files/config/settings.inc.php" ]]; then
   danger "No backup found. Please create a backup first."
 fi
 
