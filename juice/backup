@@ -29,6 +29,7 @@ rsync -alv --delete \
     --exclude '/cache/cachefs' \
     --exclude '/themes/*/cache' \
     --exclude '/log' \
+    --exclude '/var' \
     $APPLICATION_PATH/ $BACKUP_PATH/files
 
 if [[ $? == 0 ]]; then
