@@ -12,22 +12,25 @@ success "Start backup process"
 
 currentVersion=$(php -r "include '${APPLICATION_PATH}/config/config.inc.php';echo _PS_VERSION_;")
 if [ "$currentVersion" == "$PRESTASHOP_NEW_VERSION" ]; then
-    danger "You are trying to backup the already upgraded $PRESTASHOP_NEW_VERSION version"
+    danger "You are trying to backup the already upgraded ${PRESTASHOP_NEW_VERSION} version"
     exit 1
 else
     success "Backing up the current version"
 fi
 
 # Creating backup directories
-mkdir -p "$backupPath/files"
+mkdir -p "$BACKUP_PATH/files"
 
 # Rsync to backup files
-rsync -azv \
-    --exclude 'cache/cachefs' \
-    --exclude 'themes/*/cache' \
-    --exclude 'log' \
-    --exclude 'var' \
-    "$APPLICATION_PATH/" "$backupPath/files"
+rsync -alv --delete \
+    --exclude '/img' \
+    --exclude '/download' \
+    --exclude '/upload' \
+    --exclude '/cache/cachefs' \
+    --exclude '/themes/*/cache' \
+    --exclude '/log' \
+    --exclude '/var' \
+    $APPLICATION_PATH/ $BACKUP_PATH/files
 
 if [[ $? == 0 ]]; then
     success "Code backup completed"
@@ -36,10 +39,14 @@ else
     exit 1
 fi
 
-if [[ -n $DATABASE_HOST && -n $DATABASE_USER && -n $DATABASE_PASSWORD && -n $DATABASE_NAME ]]; then
+if [[ -n "$DATABASE_HOST" && -n "$DATABASE_USER" && -n "$DATABASE_PASSWORD" && -n "$DATABASE_NAME" ]]; then
 
     # Database backup
-    mysqldump -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME > $backupPath/database.sql
+    mysqldump --single-transaction \
+        -h"$DATABASE_HOST" \
+        -u"$DATABASE_USER" \
+        -p"$DATABASE_PASSWORD" \
+        "$DATABASE_NAME" > "${BACKUP_PATH}/database.sql"
 
     if [[ $? == 0 ]]; then
         success "Database backup created"

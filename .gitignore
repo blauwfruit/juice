@@ -1,6 +1,6 @@
 # Ignore upgrade data
 
-data/
+backup/
 prestashop/
 results/
 
