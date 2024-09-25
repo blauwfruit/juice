@@ -1,5 +1,5 @@
 #!/bin/bash
 
-backupPath='./data'
-resultPath='./results'
-src='./prestashop'
+BACKUP_PATH=$(pwd)'/backup'
+UPDRADE_RESULT_LOG_PATH=$(pwd)'/results'
+PRESTASHOP_SOURCE_PATH=$(pwd)'/prestashop'

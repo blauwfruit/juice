@@ -63,25 +63,25 @@ fi
           fi
         fi
 
-        rm -rf $src
-        mkdir -p $src
+        rm -rf $PRESTASHOP_SOURCE_PATH
+        mkdir -p $PRESTASHOP_SOURCE_PATH
 
         info "Unzipping the new release"
-        unzip -o "$releaseZip" -d "$src"
+        unzip -o "$releaseZip" -d "$PRESTASHOP_SOURCE_PATH"
 
         if [[ $? != 0 ]]; then
           danger "Unzip failed, exit $?"
         fi
 
         # Unzipping the inner prestashop.zip
-        unzip -o "$src/prestashop.zip" -d "$src"
+        unzip -o "$PRESTASHOP_SOURCE_PATH/prestashop.zip" -d "$PRESTASHOP_SOURCE_PATH"
       fi
 
       # Add custom exclude list config/exclude-list-custom.txt
             rsync -avz \
               --keep-dirlinks \
               --exclude-from="config/exclude-list-custom.txt" \
-              $src/* $APPLICATION_PATH
+              $PRESTASHOP_SOURCE_PATH/* $APPLICATION_PATH
 
       info "Copying new release in application folder"
 
@@ -112,11 +112,11 @@ fi
         warning "Command 'sed' could not manipulate $defines_inc_php, exit code $?"
       fi
 
-      mkdir -p "$resultPath"
+      mkdir -p "$UPDRADE_RESULT_LOG_PATH"
 
       info "Starting the upgrade process"
 
-      curlOutPut=$(curl --write-out %{http_code} --silent --output "$resultPath/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
+      curlOutPut=$(curl --write-out %{http_code} --silent --output "$UPDRADE_RESULT_LOG_PATH/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
 
       if [[ ! -f $APPLICATION_PATH/install/index.php ]]; then
         danger "Upgrade file not available."
