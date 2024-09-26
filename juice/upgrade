@@ -217,9 +217,32 @@ fi
 
       php "${APPLICATION_PATH}"/modules/autoupgrade/cli-upgrade.php --dir="${BACKOFFICE_FOLDER}"
 
-      chown -R www-data:www-data "${APPLICATION_PATH}/"
-      chmod -R 755 "${APPLICATION_PATH}/"
+      info "Start chown"
+      find "${APPLICATION_PATH}/" \
+        \( -path "${APPLICATION_PATH}/img" -o -path "${APPLICATION_PATH}/download" -o -path "${APPLICATION_PATH}/upload" \) \
+        -prune \
+        -o \
+        -exec chown www-data:www-data {} +
+      info "End chown"
+      
+      info "Start chmod folders"
+      find "${APPLICATION_PATH}/" \
+        -type d \
+        \( -path "${APPLICATION_PATH}/img" -o -path "${APPLICATION_PATH}/download" -o -path "${APPLICATION_PATH}/upload" \) \
+        -prune \
+        -o \
+        -exec chmod 755 {} +
+      info "End chmod folders"
+      
+      info "Start chmod files"
+      find "${APPLICATION_PATH}/" \
+        -type f \
+        \( -path "${APPLICATION_PATH}/img" -o -path "${APPLICATION_PATH}/download" -o -path "${APPLICATION_PATH}/upload" \) \
+        -prune \
+        -o \
+        -exec chmod 644 {} +
 
+      info "End chmod files"
   fi
 
 if [[ -f "${APPLICATION_PATH}/blauwfruit-juice-upgrade-${PRESTASHOP_NEW_VERSION}-hook-after" ]]; then
