@@ -193,20 +193,18 @@ fi
               # Download and install new Autoupgrade
               curl -L https://github.com/PrestaShop/autoupgrade/releases/download/v6.0.0/autoupgrade-v6.0.0.zip -o ${APPLICATION_PATH}/modules/autoupgrade.zip
               unzip -o "${APPLICATION_PATH}/modules/autoupgrade.zip" -d "${APPLICATION_PATH}/modules/"
-
-              # Install the Autoupgrade module
-              php "${APPLICATION_PATH}/bin/console" prestashop:module install autoupgrade
-
-              # Create autoupgrade download directory in admin folder
-              mkdir -p "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download"
           fi
+
+      php "${APPLICATION_PATH}/bin/console" prestashop:module install autoupgrade
+
+      mkdir -p "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download"
 
       # Download the PrestaShop zip and XML files to the download directory
       curl -L https://github.com/PrestaShop/PrestaShop/releases/download/"$PRESTASHOP_NEW_VERSION"/prestashop_"$PRESTASHOP_NEW_VERSION".zip -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/prestashop.zip"
       curl -L https://github.com/PrestaShop/PrestaShop/releases/download/"$PRESTASHOP_NEW_VERSION"/prestashop_"$PRESTASHOP_NEW_VERSION".xml -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/prestashop.xml"
 
       # Create the Autoupgrade config file
-      echo "{\"channel\":\"archive\",\"archive_prestashop\":\"prestashop.zip\",\"archive_num\":\"$PRESTASHOP_NEW_VERSION\",\"archive_xml\":\"prestashop.xml\",\"PS_AUTOUP_CHANGE_DEFAULT_THEME\":0,\"PS_AUTOUP_BACKUP\": 0,\"PS_AUTOUP_KEEP_IMAGES\": 0,\"PS_AUTOUP_PERFORMANCE\": 2,\"PS_AUTOUP_CUSTOM_MOD_DESACT\": 0,\"PS_DISABLE_OVERRIDES\": 0,\"PS_AUTOUP_UPDATE_DEFAULT_THEME\": 0,\"PS_AUTOUP_CHANGE_DEFAULT_THEME\": 0,\"PS_AUTOUP_UPDATE_RTL_FILES\": 1,\"PS_AUTOUP_KEEP_MAILS\": 1,\"skip_backup\": 1}" > "$APPLICATION_PATH"/modules/autoupgrade/config.json
+      echo "{\"channel\":\"archive\",\"archive_prestashop\":\"prestashop.zip\",\"archive_num\":\"$PRESTASHOP_NEW_VERSION\",\"archive_xml\":\"prestashop.xml\",\"PS_AUTOUP_CHANGE_DEFAULT_THEME\":0,\"PS_AUTOUP_BACKUP\": 0,\"PS_AUTOUP_KEEP_IMAGES\": 0,\"PS_AUTOUP_PERFORMANCE\": 2,\"PS_AUTOUP_CUSTOM_MOD_DESACT\": 1,\"PS_DISABLE_OVERRIDES\": 0,\"PS_AUTOUP_UPDATE_DEFAULT_THEME\": 0,\"PS_AUTOUP_CHANGE_DEFAULT_THEME\": 0,\"PS_AUTOUP_UPDATE_RTL_FILES\": 0,\"PS_AUTOUP_KEEP_MAILS\": 1,\"skip_backup\": 1}" > "$APPLICATION_PATH"/modules/autoupgrade/config.json
 
       chown -R www-data:www-data "${APPLICATION_PATH}/modules/"
       chmod -R 755 "${APPLICATION_PATH}/modules/"
