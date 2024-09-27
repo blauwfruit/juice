@@ -185,10 +185,10 @@ fi
       info "Running custom steps for PrestaShop 8+"
 
       # Check if autoupgrade module already exists
-          if [ -d "${APPLICATION_PATH}/modules/autoupgrade" ]; then
+          if [ -f "${APPLICATION_PATH}/modules/autoupgrade/autoupgrade.php" ]; then
               info "Autoupgrade module already exists, skipping download."
           else
-              info "Autoupgrade module does not exist, downloading and installing."
+              info "Autoupgrade modulge does not exist, downloading and installing."
 
               # Download and install new Autoupgrade
               curl -L https://github.com/PrestaShop/autoupgrade/releases/download/v6.0.0/autoupgrade-v6.0.0.zip -o ${APPLICATION_PATH}/modules/autoupgrade.zip
