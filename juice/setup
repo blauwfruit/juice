@@ -1,9 +1,35 @@
 #!/bin/bash
 
+# Function to fix Debian EOL repositories (e.g., Buster)
+fix_eol_sources() {
+  local codename
+  codename=$(grep VERSION_CODENAME /etc/os-release 2>/dev/null | cut -d= -f2)
+  
+  if [[ "$codename" == "buster" || "$codename" == "stretch" || "$codename" == "jessie" ]]; then
+    echo "Detected EOL Debian release ($codename). Updating sources to use archive..."
+    cat > /etc/apt/sources.list << EOF
+deb http://archive.debian.org/debian/ ${codename} main contrib non-free
+deb http://archive.debian.org/debian-security/ ${codename}/updates main contrib non-free
+EOF
+    # Disable apt's check for valid release dates on archived repos
+    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until
+  fi
+}
+
 # Install necessary packages (rsync, git) if not installed
 if ! command -v rsync &> /dev/null; then
   echo "rsync is not installed, installing..."
-  apt-get update && apt-get install -y git rsync
+  
+  # Try normal update first
+  if ! apt-get update 2>&1 | grep -q "404"; then
+    apt-get install -y git rsync
+  else
+    # If we got 404 errors, try fixing EOL sources
+    echo "Repository errors detected, attempting to fix..."
+    fix_eol_sources
+    apt-get update && apt-get install -y git rsync
+  fi
+  
   if [[ $? -ne 0 ]]; then
     echo "Failed to install rsync. Exiting."
     exit 1
