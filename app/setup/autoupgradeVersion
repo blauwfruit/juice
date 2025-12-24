@@ -1,0 +1,25 @@
+#!/bin/bash
+
+source app/functions
+
+# Get preferred autoupgrade module version
+
+function autoupgradeVersion() {
+    echo -n "Which version of the autoupgrade module do you want to use? [default: v6.0.0] "
+    read AUTOUPGRADE_VERSION
+    AUTOUPGRADE_VERSION=${AUTOUPGRADE_VERSION:-v6.0.0}
+    
+    url="https://github.com/PrestaShop/autoupgrade/releases/tag/$AUTOUPGRADE_VERSION"
+    http_code=$(curl -o /dev/null -s -w "%{http_code}" "$url")
+    if [[ $http_code -ge 200 && $http_code -lt 300 ]]; then
+        success "This autoupgrade version is available"
+    else
+        warning "This version is not available, pick another version"
+        autoupgradeVersion
+        return
+    fi
+
+    echo "AUTOUPGRADE_VERSION=$AUTOUPGRADE_VERSION" >> .juice_setup
+    success "Autoupgrade module version: '$AUTOUPGRADE_VERSION'"
+}
+

@@ -37,6 +37,8 @@ currentVersion
 
 newVersion
 
+autoupgradeVersion
+
 customThemeFolder
 
 backofficeFolder

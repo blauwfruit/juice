@@ -42,187 +42,69 @@ if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hoo
   fi
 fi
 
-  # Determine PrestaShop major version
-  currentVersion=$(php -r "include '${APPLICATION_PATH}/config/config.inc.php';echo _PS_VERSION_;")
-  prestashop_major_version=$(echo $PRESTASHOP_NEW_VERSION | cut -d '.' -f1)
+# Get current PrestaShop version
+currentVersion=$(php -r "include '${APPLICATION_PATH}/config/config.inc.php';echo _PS_VERSION_;")
+info "Current PrestaShop version: $currentVersion"
+info "Target PrestaShop version: $PRESTASHOP_NEW_VERSION"
+info "Using autoupgrade module version: $AUTOUPGRADE_VERSION"
 
-  # If the PrestaShop version is less than 8
-  if [[ "$prestashop_major_version" -lt 8 ]]; then
-      info "Running upgrade process for PrestaShop version below 8"
+# Check if autoupgrade module already exists
+if [ -f "${APPLICATION_PATH}/modules/autoupgrade/autoupgrade.php" ]; then
+    info "Autoupgrade module already exists, skipping download."
+else
+    info "Autoupgrade module does not exist, downloading and installing."
 
-      if [[ $PRESTASHOP_NEW_VERSION != "$currentVersion" ]]; then
-        releaseZip="prestashop-${PRESTASHOP_NEW_VERSION}.zip"
-        releaseSourceUrl="https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip"
+    # Download and install new Autoupgrade
+    curl -L "https://github.com/PrestaShop/autoupgrade/releases/download/${AUTOUPGRADE_VERSION}/autoupgrade-${AUTOUPGRADE_VERSION}.zip" -o "${APPLICATION_PATH}/modules/autoupgrade.zip"
+    unzip -o "${APPLICATION_PATH}/modules/autoupgrade.zip" -d "${APPLICATION_PATH}/modules/"
+fi
 
-        if [ ! -f "$releaseZip" ]; then
-          info "Downloading PrestaShop ${PRESTASHOP_NEW_VERSION}"
-          curl -L --write-out %{http_code} --silent --output "$releaseZip" "$releaseSourceUrl"
+# Install the autoupgrade module via console if available, otherwise try direct installation
+if [ -f "${APPLICATION_PATH}/bin/console" ]; then
+    php "${APPLICATION_PATH}/bin/console" prestashop:module install autoupgrade
+else
+    # For older PrestaShop versions without bin/console, install module directly
+    info "bin/console not available, installing module directly"
+    php -r "
+    include '${APPLICATION_PATH}/config/config.inc.php';
+    include '${APPLICATION_PATH}/init.php';
+    \$module = Module::getInstanceByName('autoupgrade');
+    if (!\$module) {
+        require_once '${APPLICATION_PATH}/modules/autoupgrade/autoupgrade.php';
+        \$module = new autoupgrade();
+    }
+    if (!\Module::isInstalled('autoupgrade')) {
+        \$module->install();
+    }
+    "
+fi
 
-          if [[ $? != 0 ]]; then
-            danger "Curl has issues, exit $?"
-          fi
-        fi
+mkdir -p "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download"
 
-        rm -rf $PRESTASHOP_SOURCE_PATH
-        mkdir -p $PRESTASHOP_SOURCE_PATH
+# Download the PrestaShop zip and XML files to the download directory
+curl -L "https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip" -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/prestashop.zip"
+curl -L "https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.xml" -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/prestashop.xml"
 
-        info "Unzipping the new release"
-        unzip -o "$releaseZip" -d "$PRESTASHOP_SOURCE_PATH"
+# Create the Autoupgrade config file
+echo "{\"channel\":\"archive\",\"archive_prestashop\":\"prestashop.zip\",\"archive_num\":\"$PRESTASHOP_NEW_VERSION\",\"archive_xml\":\"prestashop.xml\",\"PS_AUTOUP_CHANGE_DEFAULT_THEME\":0,\"PS_AUTOUP_BACKUP\": 0,\"PS_AUTOUP_KEEP_IMAGES\": 0,\"PS_AUTOUP_PERFORMANCE\": 2,\"PS_AUTOUP_CUSTOM_MOD_DESACT\": 1,\"PS_DISABLE_OVERRIDES\": 0,\"PS_AUTOUP_UPDATE_DEFAULT_THEME\": 0,\"PS_AUTOUP_CHANGE_DEFAULT_THEME\": 0,\"PS_AUTOUP_UPDATE_RTL_FILES\": 0,\"PS_AUTOUP_KEEP_MAILS\": 1,\"skip_backup\": 1}" > "$APPLICATION_PATH/modules/autoupgrade/config.json"
 
-        if [[ $? != 0 ]]; then
-          danger "Unzip failed, exit $?"
-        fi
+chown -R www-data:www-data "${APPLICATION_PATH}/modules/"
+chmod -R 755 "${APPLICATION_PATH}/modules/"
 
-        # Unzipping the inner prestashop.zip
-        unzip -o "$PRESTASHOP_SOURCE_PATH/prestashop.zip" -d "$PRESTASHOP_SOURCE_PATH"
-      fi
+# Apply the config file
+php "${APPLICATION_PATH}/modules/autoupgrade/cli-updateconfig.php" --from="${APPLICATION_PATH}/modules/autoupgrade/config.json" --dir="${BACKOFFICE_FOLDER}"
 
-      # Add custom exclude list config/exclude-list-custom.txt
-            rsync -avz \
-              --keep-dirlinks \
-              --exclude-from="config/exclude-list-custom.txt" \
-              $PRESTASHOP_SOURCE_PATH/* $APPLICATION_PATH
+# Run the upgrade
+php "${APPLICATION_PATH}/modules/autoupgrade/cli-upgrade.php" --dir="${BACKOFFICE_FOLDER}"
 
-      info "Copying new release in application folder"
+info "Change owner to www-data:www-data"
+find ${APPLICATION_PATH} -exec chown -R www-data:www-data {} +
 
-      # Adjust ownership
-      chown -R www-data:www-data "$APPLICATION_PATH"
+info "Change mode of files to 644"
+find ${APPLICATION_PATH} -type f -exec chmod 644 {} +
 
-      rm -f "$APPLICATION_PATH/cache/class_index.php"
-      rm -rf "$APPLICATION_PATH/var/"
-      rm -rf \
-        "$APPLICATION_PATH/cache/cachefs" \
-        "$APPLICATION_PATH/cache/smarty/compile" \
-        "$APPLICATION_PATH/cache/smarty/cache"
-
-      if [ -f "$APPLICATION_PATH/config/defines.inc.php" ]; then
-        success "defines.inc.php exists"
-      else
-        warning "$APPLICATION_PATH/config/defines.inc.php does not exist"
-        exit 1
-      fi
-
-      defines_inc_php="$APPLICATION_PATH/config/defines.inc.php"
-
-      sed -i "s/_PS_MODE_DEV_', false/_PS_MODE_DEV_', true/g" "$defines_inc_php"
-
-      if [ $? == 0 ]; then
-        success "Dev mode turned on"
-      else
-        warning "Command 'sed' could not manipulate $defines_inc_php, exit code $?"
-      fi
-
-      mkdir -p "$UPDRADE_RESULT_LOG_PATH"
-
-      info "Starting the upgrade process"
-
-      curlOutPut=$(curl --write-out %{http_code} --silent --output "$UPDRADE_RESULT_LOG_PATH/results.xml" "$SHOP_URL/install/upgrade/upgrade.php")
-
-      if [[ ! -f $APPLICATION_PATH/install/index.php ]]; then
-        danger "Upgrade file not available."
-      fi
-
-      info "Removing install folder"
-      rm -r "$APPLICATION_PATH/install"
-
-      if [[ $? == 0 ]]; then
-        success "/install folder successfully removed"
-      else
-        warning "/install folder could not be removed"
-      fi
-
-      info "Creating the themes cache folder"
-      mkdir -p "$APPLICATION_PATH/themes/classic/assets/cache"
-
-      # Remove backoffice folder
-      if [ -d "$APPLICATION_PATH/$BACKOFFICE_FOLDER" ]; then
-        rm -r "$APPLICATION_PATH/$BACKOFFICE_FOLDER"
-        if [[ $? -eq 0 ]]; then
-          success "/$BACKOFFICE_FOLDER folder successfully removed"
-        else
-          warning "/$BACKOFFICE_FOLDER folder could not be removed"
-        fi
-      fi
-
-      # Remove themes/default-bootstrap folder
-      if [ -d "$APPLICATION_PATH/themes/default-bootstrap" ]; then
-        rm -r "$APPLICATION_PATH/themes/default-bootstrap"
-        if [[ $? -eq 0 ]]; then
-          success "/themes/default-bootstrap folder successfully removed"
-        fi
-      fi
-
-      # Replace admin folder
-      if [ -d "$APPLICATION_PATH/admin" ]; then
-        mv "$APPLICATION_PATH/admin" "$APPLICATION_PATH/$BACKOFFICE_FOLDER"
-        if [[ $? -eq 0 ]]; then
-          success "Admin folder successfully replaced"
-        else
-          warning "There was an issue with creating the admin folder. Command 'mv' exit code $?"
-          exit 1
-        fi
-      fi
-
-      if [ -f "$APPLICATION_PATH/config/defines.inc.php" ]; then
-        sed -i "s/_PS_MODE_DEV_', true/_PS_MODE_DEV_', false/g" "$defines_inc_php"
-        if [ $? == 0 ]; then
-          success "Development mode turned off"
-        else
-          warning "Failed to turn off development mode. Command 'sed' could not manipulate $defines_inc_php, exit code $?"
-        fi
-      fi
-
-      rm -f "$APPLICATION_PATH/cache/class_index.php"
-      rm -rf "$APPLICATION_PATH/var/"
-      rm -rf \
-        "$APPLICATION_PATH/cache/cachefs" \
-        "$APPLICATION_PATH/cache/smarty/compile" \
-        "$APPLICATION_PATH/cache/smarty/cache"
-
-
-  # If the PrestaShop version is 8 or above
-  elif [[ "$prestashop_major_version" -ge 8 ]]; then
-      info "Running custom steps for PrestaShop 8+"
-
-      # Check if autoupgrade module already exists
-          if [ -f "${APPLICATION_PATH}/modules/autoupgrade/autoupgrade.php" ]; then
-              info "Autoupgrade module already exists, skipping download."
-          else
-              info "Autoupgrade modulge does not exist, downloading and installing."
-
-              # Download and install new Autoupgrade
-              curl -L https://github.com/PrestaShop/autoupgrade/releases/download/v6.0.0/autoupgrade-v6.0.0.zip -o ${APPLICATION_PATH}/modules/autoupgrade.zip
-              unzip -o "${APPLICATION_PATH}/modules/autoupgrade.zip" -d "${APPLICATION_PATH}/modules/"
-          fi
-
-      php "${APPLICATION_PATH}/bin/console" prestashop:module install autoupgrade
-
-      mkdir -p "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download"
-
-      # Download the PrestaShop zip and XML files to the download directory
-      curl -L https://github.com/PrestaShop/PrestaShop/releases/download/"$PRESTASHOP_NEW_VERSION"/prestashop_"$PRESTASHOP_NEW_VERSION".zip -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/prestashop.zip"
-      curl -L https://github.com/PrestaShop/PrestaShop/releases/download/"$PRESTASHOP_NEW_VERSION"/prestashop_"$PRESTASHOP_NEW_VERSION".xml -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/prestashop.xml"
-
-      # Create the Autoupgrade config file
-      echo "{\"channel\":\"archive\",\"archive_prestashop\":\"prestashop.zip\",\"archive_num\":\"$PRESTASHOP_NEW_VERSION\",\"archive_xml\":\"prestashop.xml\",\"PS_AUTOUP_CHANGE_DEFAULT_THEME\":0,\"PS_AUTOUP_BACKUP\": 0,\"PS_AUTOUP_KEEP_IMAGES\": 0,\"PS_AUTOUP_PERFORMANCE\": 2,\"PS_AUTOUP_CUSTOM_MOD_DESACT\": 1,\"PS_DISABLE_OVERRIDES\": 0,\"PS_AUTOUP_UPDATE_DEFAULT_THEME\": 0,\"PS_AUTOUP_CHANGE_DEFAULT_THEME\": 0,\"PS_AUTOUP_UPDATE_RTL_FILES\": 0,\"PS_AUTOUP_KEEP_MAILS\": 1,\"skip_backup\": 1}" > "$APPLICATION_PATH"/modules/autoupgrade/config.json
-
-      chown -R www-data:www-data "${APPLICATION_PATH}/modules/"
-      chmod -R 755 "${APPLICATION_PATH}/modules/"
-
-      # Apply the config file
-      php "${APPLICATION_PATH}"/modules/autoupgrade/cli-updateconfig.php --from="${APPLICATION_PATH}/modules/autoupgrade/config.json" --dir="${BACKOFFICE_FOLDER}"
-
-      php "${APPLICATION_PATH}"/modules/autoupgrade/cli-upgrade.php --dir="${BACKOFFICE_FOLDER}"
-
-      info "Change owner to www-data:www-data"
-      find ${APPLICATION_PATH} -exec chown -R www-data:www-data {} +
-      
-      info "Change mode of files to 644"
-      find ${APPLICATION_PATH} -type f -exec chmod 644 {} +
-      
-      info "Change mode of directories to 755"
-      find ${APPLICATION_PATH} -type d -exec chmod 755 {} +
-  fi
+info "Change mode of directories to 755"
+find ${APPLICATION_PATH} -type d -exec chmod 755 {} +
 
 if [[ -f "${APPLICATION_PATH}/blauwfruit-juice-upgrade-${PRESTASHOP_NEW_VERSION}-hook-after" ]]; then
 
