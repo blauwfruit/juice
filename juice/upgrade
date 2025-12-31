@@ -48,6 +48,17 @@ info "Current PrestaShop version: $currentVersion"
 info "Target PrestaShop version: $PRESTASHOP_NEW_VERSION"
 info "Using autoupgrade module version: $AUTOUPGRADE_VERSION"
 
+# Determine if we're using autoupgrade v7.x or older
+# v7.x uses Symfony console commands instead of cli-*.php scripts
+AUTOUPGRADE_MAJOR_VERSION=$(echo "$AUTOUPGRADE_VERSION" | sed 's/^v//' | cut -d'.' -f1)
+if [[ "$AUTOUPGRADE_MAJOR_VERSION" -ge 7 ]]; then
+    AUTOUPGRADE_V7=true
+    info "Detected autoupgrade v7.x or newer - using Symfony console commands"
+else
+    AUTOUPGRADE_V7=false
+    info "Detected autoupgrade v6.x or older - using legacy CLI scripts"
+fi
+
 # Check if autoupgrade module already exists
 if [ -f "${APPLICATION_PATH}/modules/autoupgrade/autoupgrade.php" ]; then
     info "Autoupgrade module already exists, skipping download."
@@ -59,8 +70,28 @@ else
     unzip -o "${APPLICATION_PATH}/modules/autoupgrade.zip" -d "${APPLICATION_PATH}/modules/"
 fi
 
-# Install the autoupgrade module via console if available, otherwise try direct installation
-if [ -f "${APPLICATION_PATH}/bin/console" ]; then
+# Install the autoupgrade module
+# For v7.x, prefer direct installation to avoid issues with main bin/console
+# (ps_checkout and other modules can cause YAML parsing errors during kernel boot)
+if [[ "$AUTOUPGRADE_V7" == true ]]; then
+    info "Installing autoupgrade module directly (v7.x mode)..."
+    php -r "
+    define('_PS_ADMIN_DIR_', '${APPLICATION_PATH}/${BACKOFFICE_FOLDER}');
+    include '${APPLICATION_PATH}/config/config.inc.php';
+    include '${APPLICATION_PATH}/init.php';
+    \$module = Module::getInstanceByName('autoupgrade');
+    if (!\$module) {
+        require_once '${APPLICATION_PATH}/modules/autoupgrade/autoupgrade.php';
+        \$module = new autoupgrade();
+    }
+    if (!Module::isInstalled('autoupgrade')) {
+        \$module->install();
+        echo 'Module autoupgrade installed successfully' . PHP_EOL;
+    } else {
+        echo 'Module autoupgrade already installed' . PHP_EOL;
+    }
+    "
+elif [ -f "${APPLICATION_PATH}/bin/console" ]; then
     php "${APPLICATION_PATH}/bin/console" prestashop:module install autoupgrade
 else
     # For older PrestaShop versions without bin/console, install module directly
@@ -85,17 +116,33 @@ mkdir -p "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download"
 curl -L "https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.zip" -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/prestashop.zip"
 curl -L "https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/prestashop_${PRESTASHOP_NEW_VERSION}.xml" -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/prestashop.xml"
 
-# Create the Autoupgrade config file
-echo "{\"channel\":\"archive\",\"archive_prestashop\":\"prestashop.zip\",\"archive_num\":\"$PRESTASHOP_NEW_VERSION\",\"archive_xml\":\"prestashop.xml\",\"PS_AUTOUP_CHANGE_DEFAULT_THEME\":0,\"PS_AUTOUP_BACKUP\": 0,\"PS_AUTOUP_KEEP_IMAGES\": 0,\"PS_AUTOUP_PERFORMANCE\": 2,\"PS_AUTOUP_CUSTOM_MOD_DESACT\": 1,\"PS_DISABLE_OVERRIDES\": 0,\"PS_AUTOUP_UPDATE_DEFAULT_THEME\": 0,\"PS_AUTOUP_CHANGE_DEFAULT_THEME\": 0,\"PS_AUTOUP_UPDATE_RTL_FILES\": 0,\"PS_AUTOUP_KEEP_MAILS\": 1,\"skip_backup\": 1}" > "$APPLICATION_PATH/modules/autoupgrade/config.json"
-
 chown -R www-data:www-data "${APPLICATION_PATH}/modules/"
 chmod -R 755 "${APPLICATION_PATH}/modules/"
 
-# Apply the config file
-php "${APPLICATION_PATH}/modules/autoupgrade/cli-updateconfig.php" --from="${APPLICATION_PATH}/modules/autoupgrade/config.json" --dir="${BACKOFFICE_FOLDER}"
-
-# Run the upgrade
-php "${APPLICATION_PATH}/modules/autoupgrade/cli-upgrade.php" --dir="${BACKOFFICE_FOLDER}"
+if [ "$AUTOUPGRADE_V7" = true ]; then
+    # Autoupgrade v7.x has its own bin/console inside the module directory
+    # This bypasses the main PrestaShop kernel and avoids module loading issues
+    info "Running upgrade using autoupgrade v7.x CLI..."
+    
+    # Run the upgrade with local archive files using the module's own console
+    # The --zip and --xml options specify the archive files in the download folder
+    php "${APPLICATION_PATH}/modules/autoupgrade/bin/console" update:start "${BACKOFFICE_FOLDER}" \
+        --zip="prestashop.zip" \
+        --xml="prestashop.xml" \
+        --no-interaction
+else
+    # Autoupgrade v6.x and older use the legacy cli-*.php scripts
+    info "Running upgrade using autoupgrade v6.x legacy CLI..."
+    
+    # Create the Autoupgrade config file (legacy format)
+    echo "{\"channel\":\"archive\",\"archive_prestashop\":\"prestashop.zip\",\"archive_num\":\"$PRESTASHOP_NEW_VERSION\",\"archive_xml\":\"prestashop.xml\",\"PS_AUTOUP_CHANGE_DEFAULT_THEME\":0,\"PS_AUTOUP_BACKUP\": 0,\"PS_AUTOUP_KEEP_IMAGES\": 0,\"PS_AUTOUP_PERFORMANCE\": 2,\"PS_AUTOUP_CUSTOM_MOD_DESACT\": 1,\"PS_DISABLE_OVERRIDES\": 0,\"PS_AUTOUP_UPDATE_DEFAULT_THEME\": 0,\"PS_AUTOUP_CHANGE_DEFAULT_THEME\": 0,\"PS_AUTOUP_UPDATE_RTL_FILES\": 0,\"PS_AUTOUP_KEEP_MAILS\": 1,\"skip_backup\": 1}" > "$APPLICATION_PATH/modules/autoupgrade/config.json"
+    
+    # Apply the config file
+    php "${APPLICATION_PATH}/modules/autoupgrade/cli-updateconfig.php" --from="${APPLICATION_PATH}/modules/autoupgrade/config.json" --dir="${BACKOFFICE_FOLDER}"
+    
+    # Run the upgrade
+    php "${APPLICATION_PATH}/modules/autoupgrade/cli-upgrade.php" --dir="${BACKOFFICE_FOLDER}"
+fi
 
 info "Change owner to www-data:www-data"
 find ${APPLICATION_PATH} -exec chown -R www-data:www-data {} +

@@ -5,9 +5,9 @@ source app/functions
 # Get preferred autoupgrade module version
 
 function autoupgradeVersion() {
-    echo -n "Which version of the autoupgrade module do you want to use? [default: v6.0.0] "
+    echo -n "Which version of the autoupgrade module do you want to use? [default: v7.4.4] "
     read AUTOUPGRADE_VERSION
-    AUTOUPGRADE_VERSION=${AUTOUPGRADE_VERSION:-v6.0.0}
+    AUTOUPGRADE_VERSION=${AUTOUPGRADE_VERSION:-v7.4.4}
     
     url="https://github.com/PrestaShop/autoupgrade/releases/tag/$AUTOUPGRADE_VERSION"
     http_code=$(curl -o /dev/null -s -w "%{http_code}" "$url")
