@@ -21,7 +21,8 @@ fi
 # Creating backup directories
 mkdir -p "$BACKUP_PATH/files"
 
-# Rsync to backup files
+info "Rsyncing files to backup directory"
+
 rsync -alv --delete \
     --exclude '/img' \
     --exclude '/download' \
@@ -41,7 +42,8 @@ fi
 
 if [[ -n "$DATABASE_HOST" && -n "$DATABASE_USER" && -n "$DATABASE_PASSWORD" && -n "$DATABASE_NAME" ]]; then
 
-    # Database backup
+    info "Creating database backup"
+    
     mysqldump --single-transaction \
         -h"$DATABASE_HOST" \
         -u"$DATABASE_USER" \
