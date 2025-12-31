@@ -1,7 +1,13 @@
 #!/bin/bash
 
 source app/functions
-source .juice_setup
+
+if [[ -f .juice_setup ]]; then
+    source .juice_setup
+else
+    info "Starting a new configuration"
+fi
+
 
 function publicUrl() {
     SHOP_URL_DEFAULT=$(mysql -h"$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME" -se "SELECT domain FROM ${DATABASE_PREFIX}shop_url WHERE id_shop_url = 1 AND main = 1 AND active = 1 LIMIT 1")
