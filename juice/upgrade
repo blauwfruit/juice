@@ -240,6 +240,14 @@ else
     php "${APPLICATION_PATH}/modules/autoupgrade/cli-upgrade.php" --dir="${BACKOFFICE_FOLDER}"
 fi
 
+# Regenerate email templates with a fresh database connection
+# (skipped during upgrade to avoid Doctrine connection timeout issues)
+if [ -f "${APPLICATION_PATH}/bin/console" ]; then
+    info "Regenerating email templates..."
+    php "${APPLICATION_PATH}/bin/console" prestashop:mail:generate --all --no-interaction 2>/dev/null || \
+        warning "Email template regeneration skipped (can be done manually from back office)"
+fi
+
 info "Change owner to www-data:www-data and set permissions (755 for dirs, 644 for files)"
 info "Setting ownership for writable directories..."
 chown -R www-data:www-data "${APPLICATION_PATH}/cache"
