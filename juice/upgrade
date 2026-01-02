@@ -256,7 +256,16 @@ chown -R www-data:www-data "${APPLICATION_PATH}/modules"
 chown -R www-data:www-data "${APPLICATION_PATH}/config"
 chown -R www-data:www-data "${APPLICATION_PATH}/$BACKOFFICE_FOLDER/autoupgrade"
 
-chmod -R u=rwX,go=rX "${APPLICATION_PATH}"
+# Set permissions on directories modified by upgrade (755 for dirs, 644 for files)
+# Skip img folder - contains uploaded images not modified by upgrade (can be very large)
+info "Setting permissions on upgrade-affected directories..."
+for dir in classes controllers src vendor config cache var modules mails themes override pdf tools js app bin "$BACKOFFICE_FOLDER"; do
+    if [ -d "${APPLICATION_PATH}/${dir}" ]; then
+        chmod -R u=rwX,go=rX "${APPLICATION_PATH}/${dir}"
+    fi
+done
+# Set permissions on root-level files
+find "${APPLICATION_PATH}" -maxdepth 1 -type f -exec chmod 644 {} \;
 
 if [[ -f "${APPLICATION_PATH}/blauwfruit-juice-upgrade-${PRESTASHOP_NEW_VERSION}-hook-after" ]]; then
 
