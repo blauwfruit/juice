@@ -238,7 +238,13 @@ else
 fi
 
 info "Change owner to www-data:www-data and set permissions (755 for dirs, 644 for files)"
-chown -R www-data:www-data "${APPLICATION_PATH}"
+info "Setting ownership for writable directories..."
+chown -R www-data:www-data "${APPLICATION_PATH}/cache"
+chown -R www-data:www-data "${APPLICATION_PATH}/var" 
+chown -R www-data:www-data "${APPLICATION_PATH}/modules"
+chown -R www-data:www-data "${APPLICATION_PATH}/config"
+chown -R www-data:www-data "${APPLICATION_PATH}/$BACKOFFICE_FOLDER/autoupgrade"
+
 chmod -R u=rwX,go=rX "${APPLICATION_PATH}"
 
 if [[ -f "${APPLICATION_PATH}/blauwfruit-juice-upgrade-${PRESTASHOP_NEW_VERSION}-hook-after" ]]; then
