@@ -77,8 +77,30 @@ if [[ "$AUTOUPGRADE_V7" == true ]]; then
     info "Installing autoupgrade module directly (v7.x mode)..."
     php -r "
     define('_PS_ADMIN_DIR_', '${APPLICATION_PATH}/${BACKOFFICE_FOLDER}');
+    // Only include config, not init.php - init.php triggers FrontController->init()
+    // which fails in CLI mode because there's no customer context
     include '${APPLICATION_PATH}/config/config.inc.php';
-    include '${APPLICATION_PATH}/init.php';
+    // Manually initialize what we need for module installation
+    if (!defined('_PS_VERSION_')) {
+        die('PrestaShop configuration not loaded properly');
+    }
+    // Initialize context minimally for CLI
+    \$context = Context::getContext();
+    if (!\$context->shop || !\$context->shop->id) {
+        \$context->shop = new Shop(Configuration::get('PS_SHOP_DEFAULT'));
+    }
+    if (!\$context->language || !\$context->language->id) {
+        \$context->language = new Language(Configuration::get('PS_LANG_DEFAULT'));
+    }
+    if (!\$context->currency || !\$context->currency->id) {
+        \$context->currency = new Currency(Configuration::get('PS_CURRENCY_DEFAULT'));
+    }
+    // Create a minimal employee context for module installation
+    if (!\$context->employee || !\$context->employee->id) {
+        \$context->employee = new Employee();
+        \$context->employee->id = 1;
+        \$context->employee->id_profile = 1;
+    }
     \$module = Module::getInstanceByName('autoupgrade');
     if (!\$module) {
         require_once '${APPLICATION_PATH}/modules/autoupgrade/autoupgrade.php';
@@ -97,15 +119,37 @@ else
     # For older PrestaShop versions without bin/console, install module directly
     info "bin/console not available, installing module directly"
     php -r "
+    define('_PS_ADMIN_DIR_', '${APPLICATION_PATH}/${BACKOFFICE_FOLDER}');
+    // Only include config, not init.php - init.php triggers FrontController->init()
+    // which fails in CLI mode because there's no customer context
     include '${APPLICATION_PATH}/config/config.inc.php';
-    include '${APPLICATION_PATH}/init.php';
+    // Initialize context minimally for CLI
+    \$context = Context::getContext();
+    if (!\$context->shop || !\$context->shop->id) {
+        \$context->shop = new Shop(Configuration::get('PS_SHOP_DEFAULT'));
+    }
+    if (!\$context->language || !\$context->language->id) {
+        \$context->language = new Language(Configuration::get('PS_LANG_DEFAULT'));
+    }
+    if (!\$context->currency || !\$context->currency->id) {
+        \$context->currency = new Currency(Configuration::get('PS_CURRENCY_DEFAULT'));
+    }
+    // Create a minimal employee context for module installation
+    if (!\$context->employee || !\$context->employee->id) {
+        \$context->employee = new Employee();
+        \$context->employee->id = 1;
+        \$context->employee->id_profile = 1;
+    }
     \$module = Module::getInstanceByName('autoupgrade');
     if (!\$module) {
         require_once '${APPLICATION_PATH}/modules/autoupgrade/autoupgrade.php';
         \$module = new autoupgrade();
     }
-    if (!\Module::isInstalled('autoupgrade')) {
+    if (!Module::isInstalled('autoupgrade')) {
         \$module->install();
+        echo 'Module autoupgrade installed successfully' . PHP_EOL;
+    } else {
+        echo 'Module autoupgrade already installed' . PHP_EOL;
     }
     "
 fi
