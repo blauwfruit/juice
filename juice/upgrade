@@ -188,14 +188,9 @@ else
     php "${APPLICATION_PATH}/modules/autoupgrade/cli-upgrade.php" --dir="${BACKOFFICE_FOLDER}"
 fi
 
-info "Change owner to www-data:www-data"
-find ${APPLICATION_PATH} -exec chown -R www-data:www-data {} +
-
-info "Change mode of files to 644"
-find ${APPLICATION_PATH} -type f -exec chmod 644 {} +
-
-info "Change mode of directories to 755"
-find ${APPLICATION_PATH} -type d -exec chmod 755 {} +
+info "Change owner to www-data:www-data and set permissions (755 for dirs, 644 for files)"
+chown -R www-data:www-data "${APPLICATION_PATH}"
+chmod -R u=rwX,go=rX "${APPLICATION_PATH}"
 
 if [[ -f "${APPLICATION_PATH}/blauwfruit-juice-upgrade-${PRESTASHOP_NEW_VERSION}-hook-after" ]]; then
 
