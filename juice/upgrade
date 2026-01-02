@@ -190,14 +190,14 @@ PRESTASHOP_XML="prestashop_${PRESTASHOP_NEW_VERSION}.xml"
 if [ -f "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/$PRESTASHOP_ZIP" ]; then
     info "PrestaShop ${PRESTASHOP_NEW_VERSION} zip already downloaded, skipping."
 else
-    info "Downloading PrestaShop ${PRESTASHOP_NEW_VERSION}..."
+    info "Starting download of PrestaShop ${PRESTASHOP_NEW_VERSION}..."
     curl -L "https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/${PRESTASHOP_ZIP}" -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/$PRESTASHOP_ZIP"
 fi
 
 if [ -f "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/$PRESTASHOP_XML" ]; then
     info "PrestaShop ${PRESTASHOP_NEW_VERSION} xml already downloaded, skipping."
 else
-    info "Downloading PrestaShop ${PRESTASHOP_NEW_VERSION} metadata..."
+    info "Starting download of PrestaShop ${PRESTASHOP_NEW_VERSION} metadata..."
     curl -L "https://github.com/PrestaShop/PrestaShop/releases/download/${PRESTASHOP_NEW_VERSION}/${PRESTASHOP_XML}" -o "$APPLICATION_PATH/$BACKOFFICE_FOLDER/autoupgrade/download/$PRESTASHOP_XML"
 fi
 
