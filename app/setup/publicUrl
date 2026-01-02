@@ -10,8 +10,8 @@ fi
 
 
 function publicUrl() {
-    SHOP_URL_DEFAULT=$(mysql -h"$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME" -se "SELECT domain FROM ${DATABASE_PREFIX}shop_url WHERE id_shop_url = 1 AND main = 1 AND active = 1 LIMIT 1")
-
+    SHOP_URL_DEFAULT=$(mysql -h"$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME" -se "SELECT su.domain FROM ${DATABASE_PREFIX}shop_url su JOIN ${DATABASE_PREFIX}shop s ON su.id_shop=s.id_shop WHERE s.active = 1 AND su.main = 1 LIMIT 1")
+    
     echo -n "What is shop URL? [$SHOP_URL_DEFAULT] "
     read -r SHOP_URL
     SHOP_URL=${SHOP_URL:-$SHOP_URL_DEFAULT}
