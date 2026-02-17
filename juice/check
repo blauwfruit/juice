@@ -75,4 +75,23 @@ if [ "$currentVersion" == "$PRESTASHOP_NEW_VERSION" ]; then
     exit 1
 fi
 
+# Warn about large tables that can slow down ALTER TABLE operations during upgrade
+LARGE_TABLES=$(mysql -h"$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME" -e "
+SELECT table_name AS 'Table',
+       table_rows AS 'Rows',
+       ROUND(data_length / 1024 / 1024, 2) AS 'Data (MB)',
+       ROUND(index_length / 1024 / 1024, 2) AS 'Index (MB)'
+FROM information_schema.tables
+WHERE table_schema = '${DATABASE_NAME}'
+  AND table_rows > 10000
+ORDER BY table_rows DESC
+LIMIT 15;
+" 2>/dev/null)
+
+if [[ -n "$LARGE_TABLES" ]]; then
+    warning "Large tables detected (>10k rows). These can slow down the upgrade:"
+    echo "$LARGE_TABLES"
+    info "Run ./juice/purge to safely clean up tables that are not essential for the store to function."
+fi
+
 success "All preliminary checks passed. Ready to proceed with the upgrade."
