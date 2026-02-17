@@ -6,11 +6,24 @@ source .juice_setup
 
 success "Starting the purge process."
 
-# SQL statement to truncate specified tables
-SQL="TRUNCATE TABLE ${DATABASE_PREFIX}connections; TRUNCATE TABLE ${DATABASE_PREFIX}connections_source; TRUNCATE TABLE ${DATABASE_PREFIX}guest; TRUNCATE TABLE ${DATABASE_PREFIX}log;"
+# SQL statement to truncate non-essential tables
+# These are analytics, tracking, and log tables that are rebuilt automatically
+# by PrestaShop. Purging them is recommended before upgrades to speed up
+# ALTER TABLE operations on large production databases.
+SQL="
+TRUNCATE TABLE ${DATABASE_PREFIX}connections;
+TRUNCATE TABLE ${DATABASE_PREFIX}connections_source;
+TRUNCATE TABLE ${DATABASE_PREFIX}connections_page;
+TRUNCATE TABLE ${DATABASE_PREFIX}page_viewed;
+TRUNCATE TABLE ${DATABASE_PREFIX}statssearch;
+TRUNCATE TABLE ${DATABASE_PREFIX}log;
+TRUNCATE TABLE ${DATABASE_PREFIX}mail;
+TRUNCATE TABLE ${DATABASE_PREFIX}guest;
+TRUNCATE TABLE ${DATABASE_PREFIX}date_range;
+"
 
 # Execute the SQL statement
-echo $SQL | mysql -h$DATABASE_HOST -u$DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME
+echo "$SQL" | mysql -h"$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME"
 
 # Check if the MySQL command was successful
 if [[ $? == 0 ]]; then
