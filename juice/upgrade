@@ -204,6 +204,8 @@ fi
 chown -R www-data:www-data "${APPLICATION_PATH}/modules/"
 chmod -R 755 "${APPLICATION_PATH}/modules/"
 
+info "The upgrade process has a 30-minute time limit. If it exceeds this, it will be terminated."
+
 if [ "$AUTOUPGRADE_V7" = true ]; then
     # Autoupgrade v7.x has its own bin/console inside the module directory
     # This bypasses the main PrestaShop kernel and avoids module loading issues
@@ -221,7 +223,7 @@ if [ "$AUTOUPGRADE_V7" = true ]; then
     # The --zip and --xml options specify the archive files in the download folder
     # --regenerate-email-templates=false prevents connection timeout during long upgrades
     # (Doctrine connection goes stale while file extraction runs on legacy PDO connection)
-    php "${APPLICATION_PATH}/modules/autoupgrade/bin/console" update:start "${BACKOFFICE_FOLDER}" \
+    php -d max_execution_time=1800 -d memory_limit=-1 "${APPLICATION_PATH}/modules/autoupgrade/bin/console" update:start "${BACKOFFICE_FOLDER}" \
         --zip="$PRESTASHOP_ZIP" \
         --xml="$PRESTASHOP_XML" \
         --regenerate-email-templates=false \
@@ -237,7 +239,7 @@ else
     php "${APPLICATION_PATH}/modules/autoupgrade/cli-updateconfig.php" --from="${APPLICATION_PATH}/modules/autoupgrade/config.json" --dir="${BACKOFFICE_FOLDER}"
     
     # Run the upgrade
-    php "${APPLICATION_PATH}/modules/autoupgrade/cli-upgrade.php" --dir="${BACKOFFICE_FOLDER}"
+    php -d max_execution_time=1800 -d memory_limit=-1 "${APPLICATION_PATH}/modules/autoupgrade/cli-upgrade.php" --dir="${BACKOFFICE_FOLDER}"
 fi
 
 # Regenerate email templates with a fresh database connection
