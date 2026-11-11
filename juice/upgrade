@@ -221,11 +221,13 @@ if [ "$AUTOUPGRADE_V7" = true ]; then
     
     # Run the upgrade with local archive files using the module's own console
     # The --zip and --xml options specify the archive files in the download folder
+    # --disable-non-native-modules=0 keeps third-party modules enabled
     # --regenerate-email-templates=false prevents connection timeout during long upgrades
     # (Doctrine connection goes stale while file extraction runs on legacy PDO connection)
     php -d max_execution_time=1800 -d memory_limit=-1 "${APPLICATION_PATH}/modules/autoupgrade/bin/console" update:start "${BACKOFFICE_FOLDER}" \
         --zip="$PRESTASHOP_ZIP" \
         --xml="$PRESTASHOP_XML" \
+        --disable-non-native-modules=0 \
         --regenerate-email-templates=false \
         --no-interaction
 else
