@@ -37,7 +37,7 @@ if [[ -f "$APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hoo
   if [[ $? -eq 0 ]]; then
     success "Upgrade Hook before executed without errors"
   else
-    warning "Upgrade Hook before script has failed. See script " . "$APPLICATION_PATH/blauwfruit-juice-upgrade-hook-before"
+    warning "Upgrade Hook before script has failed. See script $APPLICATION_PATH/blauwfruit-juice-upgrade-$PRESTASHOP_NEW_VERSION-hook-before"
     warning "You're upgrade might still be successfully executed"
   fi
 fi
@@ -243,7 +243,7 @@ if [[ -f "${APPLICATION_PATH}/blauwfruit-juice-upgrade-${PRESTASHOP_NEW_VERSION}
   if [[ $? -eq 0 ]]; then
     success "Upgrade Hook After executed without errors"
   else
-    warning "Upgrade Hook After script has failed. See script " . "${APPLICATION_PATH}/blauwfruit-juice-upgrade-hook-after"
+    warning "Upgrade Hook After script has failed. See script ${APPLICATION_PATH}/blauwfruit-juice-upgrade-${PRESTASHOP_NEW_VERSION}-hook-after"
     warning "You're upgrade might still be successfully executed"
   fi
 fi
