@@ -10,20 +10,23 @@ success "Starting the purge process."
 # These are analytics, tracking, and log tables that are rebuilt automatically
 # by PrestaShop. Purging them is recommended before upgrades to speed up
 # ALTER TABLE operations on large production databases.
-SQL="
-TRUNCATE TABLE ${DATABASE_PREFIX}connections;
-TRUNCATE TABLE ${DATABASE_PREFIX}connections_source;
-TRUNCATE TABLE ${DATABASE_PREFIX}connections_page;
-TRUNCATE TABLE ${DATABASE_PREFIX}page_viewed;
-TRUNCATE TABLE ${DATABASE_PREFIX}statssearch;
-TRUNCATE TABLE ${DATABASE_PREFIX}log;
-TRUNCATE TABLE ${DATABASE_PREFIX}mail;
-TRUNCATE TABLE ${DATABASE_PREFIX}guest;
-TRUNCATE TABLE ${DATABASE_PREFIX}date_range;
-"
+TABLES="connections connections_source connections_page page_viewed statssearch log mail guest date_range"
+
+MYSQL=(mysql -h"$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME")
+
+# Only truncate tables that exist (some come from optional modules)
+SQL=""
+for TABLE in $TABLES; do
+    EXISTS=$("${MYSQL[@]}" -N -s -e "SHOW TABLES LIKE '${DATABASE_PREFIX}${TABLE}'")
+    if [[ -n "$EXISTS" ]]; then
+        SQL+="TRUNCATE TABLE \`${DATABASE_PREFIX}${TABLE}\`;"$'\n'
+    fi
+done
 
 # Execute the SQL statement
-echo "$SQL" | mysql -h"$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME"
+if [[ -n "$SQL" ]]; then
+    echo "$SQL" | "${MYSQL[@]}"
+fi
 
 # Check if the MySQL command was successful
 if [[ $? == 0 ]]; then
