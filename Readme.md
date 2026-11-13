@@ -139,7 +139,7 @@ We recommend using Docker with the Docker Compose manifest from this repo.
 
 ### Dev mode
 
-By default debugging mode is turned of/not set, see the manifest:
+By default debugging mode is turned off/not set, see the manifest:
 
 `# PS_DEV_MODE: true`
 
